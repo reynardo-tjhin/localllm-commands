@@ -1,23 +1,20 @@
-# localllm-commands
+# Performance
 
-Learning about running local LLMs
+## Commands
 
-## Build
+### Command 1
 
-Here is my build specs
+- Offloading all expert layers to CPU
+- Context size of 65536
+- Speed/Performance:
 
-- CPU: AMD Ryzen 9 7900 12-Core Processor
-- Memory: 2x 48GB 6000MHz DDR5
-- Graphics Cards: 2x GeForce RTX 3060
+```none
+prompt eval time =   99729.10 ms /  3176 tokens (   31.40 ms per token,    31.85 tokens per second)
+eval time =  674500.35 ms /  2865 tokens (  235.43 ms per token,     4.25 tokens per second)
+total time =  774229.46 ms /  6041 tokens
+```
 
-## Models and Its Commands
-
-### GLM 4.5 Air
-
-- GGUF provided by unsloth: [GLM-4.5-Air](https://huggingface.co/unsloth/GLM-4.5-Air-GGUF)
-- Quantization Type: Q4_K_S
-- Backend: llama.cpp
-- Example command used:
+- Command:
 
 ```bash
 ./llama-server --model ~/Models/GLM/GLM-4.5-Air-Q4_K_S-00001-of-00002.gguf
