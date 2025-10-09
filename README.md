@@ -17,6 +17,9 @@ Here is my build specs
 ./llama-bench --model ~/Models/HuggingFaceTB/SmolLM2-1.7B-Instruct-F16.gguf
 ./llama-bench --model ~/Downloads/gpt-oss-20b-F16.gguf
 
+./llama-bench --model ~/Models/Qwen/Qwen3-32B-Q4_K_S.gguf \
+              --n-gpu-layers 99
+
 # offloading the maximum number of layers possible within the total number of VRAM to GPU
 # no tweaking, max no of layers can be offloaded to GPU = 16 layers
 ./llama-bench --model ~/Models/GLM/GLM-4.5-Air-Q4_K_S-00001-of-00002.gguf \
@@ -35,8 +38,10 @@ Here is my build specs
               --n-gpu-layers 99 \
               --flash-attn 1
 
-./llama-bench --model ~/Models/Qwen/Qwen3-32B-Q4_K_S.gguf \
-              --n-gpu-layers 99
+./llama-bench --model ~/Models/OpenAI/gpt-oss-120b-F16.gguf \
+              --n-gpu-layers 99 \
+              -ncmoe 99 \
+              --flash-attn 1
 ```
 
 | model                          |        size |     params | backend    | ngl | fa | ot                    |            test |                  t/s |
