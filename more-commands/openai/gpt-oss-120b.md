@@ -9,7 +9,7 @@
 ```None
 prompt eval time =   22092.13 ms /  3448 tokens (    6.41 ms per token,   156.07 tokens per second)
        eval time =  113740.97 ms /  2519 tokens (   45.15 ms per token,    22.15 tokens per second)
-       total time =  135833.11 ms /  5967 tokens
+      total time =  135833.11 ms /  5967 tokens
 ```
 
 ```bash
