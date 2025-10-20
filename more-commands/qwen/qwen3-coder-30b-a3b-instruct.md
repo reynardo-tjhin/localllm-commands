@@ -17,7 +17,7 @@ To achieve optimal performance, we recommend the following settings:
                 --override-tensor "blk.*.ffn_gate_exps.weight=CPU" \
                 --ctx-size 16384 \
                 --cache-type-k q8_0 \
-                --cache-type-k q8_0 \
+                --cache-type-v q8_0 \
                 --flash-attn on \
                 --temp 0.7 \
                 --top-p 0.8
