@@ -9,6 +9,9 @@ import json
 # GPT OSS 120B           FP16
 # Qwen3 Coder 30B A3B    BF16
 
+#TODO
+# how to load and unload
+
 # rough idea
 URL="http://192.168.4.128:8080/upstream/gpt-oss-120b-f16/v1/chat/completions"
 
