@@ -29,8 +29,20 @@ Here is my build specs
               --n-gpu-layers 99 \
               --flash-attn 1
 
-# Ling-Flash-2.0-Q4_K_M
+# Ling-Flash-2.0-Q4_K_M or Ring-flash-2.0-Q4_K_M
 ./llama-bench --model ~/Models/InclusionAI/Ling-flash-2.0-Q4_K_M.gguf \
+              --n-gpu-layers 99 \
+              -ncmoe 99 \
+              --flash-attn 1
+
+# GPT-OSS-120B-F16
+./llama-bench --model ~/Models/OpenAI/gpt-oss-120b-F16.gguf \
+              --n-gpu-layers 99 \
+              -ncmoe 99 \
+              --flash-attn 1
+
+# Hunyuan-A13B-Instruct-Q6_K
+./llama-bench --model ~/Models/Tencent/tencent_Hunyuan-A13B-Instruct-Q6_K-00001-of-00002.gguf \
               --n-gpu-layers 99 \
               -ncmoe 99 \
               --flash-attn 1
@@ -39,12 +51,6 @@ Here is my build specs
 ./llama-bench --model ~/Models/GLM/GLM-4.5-Air-Q4_K_S-00001-of-00002.gguf \
               -ncmoe 99 \
               --n-gpu-layers 99 \
-              --flash-attn 1
-
-# GPT-OSS-120B-F16
-./llama-bench --model ~/Models/OpenAI/gpt-oss-120b-F16.gguf \
-              --n-gpu-layers 99 \
-              -ncmoe 99 \
               --flash-attn 1
 ```
 
@@ -55,8 +61,9 @@ Here is my build specs
 | qwen3 32B Q4_K - Small         |  17.48 GiB  |    32.76 B | CUDA       |  99 |    |           pp512 |        462.98 ± 0.28 |
 | qwen3moe 30B.A3B BF16          |  56.89 GiB  |    30.53 B | CUDA       |  99 |  1 |           pp512 |        130.28 ± 1.13 |
 | bailingmoe2 100B.A6B Q4_K - Medium |  58.13 GiB |   102.89 B | CUDA    |  99 |  1 |           pp512 |        122.81 ± 1.42 |
-| glm4moe 106B.A12B Q4_K - Small |  62.27 GiB  |   110.47 B | CUDA       |  99 |  1 |           pp512 |         98.54 ± 0.58 |
 | gpt-oss 120B F16               |  60.87 GiB  |   116.83 B | CUDA       |  99 |  1 |           pp512 |        169.31 ± 1.12 |
+| hunyuan-moe A13B Q6_K          |  61.75 GiB |    80.39 B | CUDA       |  99 |  1 |           pp512 |         92.76 ± 0.25 |
+| glm4moe 106B.A12B Q4_K - Small |  62.27 GiB  |   110.47 B | CUDA       |  99 |  1 |           pp512 |         98.54 ± 0.58 |
 
 | model                          |        size |     params | backend    | ngl | fa |            test |                  t/s |
 | ------------------------------ | ----------: | ---------: | ---------- | --: | -: | --------------: | -------------------: |
@@ -65,5 +72,6 @@ Here is my build specs
 | qwen3 32B Q4_K - Small         |   17.48 GiB |    32.76 B | CUDA       |  99 |    |           tg128 |         16.90 ± 0.01 |
 | qwen3moe 30B.A3B BF16          |   56.89 GiB |    30.53 B | CUDA       |  99 |  1 |           tg128 |         13.12 ± 0.02 |
 | bailingmoe2 100B.A6B Q4_K - Medium |  58.13 GiB |   102.89 B | CUDA    |  99 |  1 |           tg128 |         22.51 ± 0.15 |
-| glm4moe 106B.A12B Q4_K - Small |   62.27 GiB |   110.47 B | CUDA       |  99 |  1 |           tg128 |         10.83 ± 0.07 |
 | gpt-oss 120B F16               |   60.87 GiB |   116.83 B | CUDA       |  99 |  1 |           tg128 |         18.46 ± 0.06 |
+| hunyuan-moe A13B Q6_K          |  61.75 GiB |    80.39 B | CUDA       |  99 |  1 |           tg128 |          6.73 ± 0.01 |
+| glm4moe 106B.A12B Q4_K - Small |   62.27 GiB |   110.47 B | CUDA       |  99 |  1 |           tg128 |         10.83 ± 0.07 |
