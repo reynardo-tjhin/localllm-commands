@@ -37,7 +37,7 @@ def get_model_name(page: Page, model_id: int) -> str:
 
 
 def load_unload_model(page: Page, model_id: int, action: str = ['load', 'unload']):
-    print("INFO - load/Unload the model")
+    print(f"INFO - {action} the model")
     model_load_unload_css_selector = f"tr.hover\\:bg-secondary-hover:nth-child({model_id}) > td:nth-child(2) > button:nth-child(1)"
     page.click(model_load_unload_css_selector)
 
@@ -95,6 +95,17 @@ def send_single_prompt(prompt: str, link: str, filename: str) -> None:
 
 
 def main():
+
+    # get the prompt from a file
+    prompt = ""
+    prompt_filename = "admin-ui-movie.txt"
+    with open(f"./prompts/{prompt_filename}", "r") as f:
+        prompt = "".join(f.readlines())
+
+    print(f"INFO - prompt filename: {prompt_filename}")
+    print(f"INFO - prompt: {prompt}")
+
+    # run playwright
     with sync_playwright() as p:
 
         print("INFO - launching a new chromium browser")
@@ -117,7 +128,7 @@ def main():
             link = "http://192.168.4.128:8080/upstream/"+model_name+"/v1/chat/completions"
             
             print(f"INFO - model name: {model_name}")
-            send_single_prompt("Hi!", link, f"{model_name}.txt")
+            send_single_prompt(prompt, link, f"{model_name}.txt")
             
             # unload model
             load_unload_model(page, index, action='unload')
