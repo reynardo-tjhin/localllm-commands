@@ -7,11 +7,14 @@ from playwright.sync_api import sync_playwright, Page
 # ./llama-swap-linux-amd64 --config config.yaml --listen 0.0.0.0:8080
 
 # models
-NO_OF_MODELS=3
+NO_OF_MODELS=6
 models = [
     "glm4.5-air",
     "gpt-oss-120b-f16",
+    "hunyuan-a13b-instruct",
+    "ling-flash-2.0",
     "qwen3-coder-30b-a3b",
+    "ring-flash-2.0",
 ]
 
 def get_model_status(page: Page, model_id: int) -> str:
@@ -81,14 +84,10 @@ def send_single_prompt(prompt: str, link: str, filename: str) -> None:
     if response.status_code == 200:
         print("INFO - request successful; writing to outputs folder")
         data = response.json()
-        file = open(f"./outputs/{filename}", "w")
-        # file.write(str(data))
-        
-        print(type(data))
-        print(data)
-
-        file.close()
-        print("INFO - write file successful")
+        # write to file
+        with open(f"./outputs/{filename}", "w") as f:
+            json.dump(data, f, indent=2)
+            print("INFO - write file successful")
     else:
         print("ERROR - request failed")
         print(f"ERROR - Reponse status code: {response.status_code}")
@@ -108,19 +107,20 @@ def main():
         print("INFO - go to the link 'http://192.168.4.128:8080/ui/models'")
         page.goto("http://192.168.4.128:8080/ui/models")
 
-        # load the first model
-        print("INFO - loading the first model")
-        load_unload_model(page, 1, action='load')
-        
-        # send prompt
-        model_name = get_model_name(page, 1)
-        link = "http://192.168.4.128:8080/upstream/"+model_name+"/v1/chat/completions"
-        
-        print(f"INFO - model name: {model_name}")
-        send_single_prompt("Hi!", link, f"{model_name}.txt")
-        
-        # unload model
-        load_unload_model(page, 1, action='unload')
+        for index in range(1, NO_OF_MODELS+1):
+            # load the first model
+            print(F"INFO - loading the model no {index}")
+            load_unload_model(page, index, action='load')
+            
+            # send prompt
+            model_name = get_model_name(page, model_id=index)
+            link = "http://192.168.4.128:8080/upstream/"+model_name+"/v1/chat/completions"
+            
+            print(f"INFO - model name: {model_name}")
+            send_single_prompt("Hi!", link, f"{model_name}.txt")
+            
+            # unload model
+            load_unload_model(page, index, action='unload')
 
         browser.close()
 

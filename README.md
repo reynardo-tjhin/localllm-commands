@@ -75,3 +75,7 @@ Here is my build specs
 | gpt-oss 120B F16               |   60.87 GiB |   116.83 B | CUDA       |  99 |  1 |           tg128 |         18.46 ± 0.06 |
 | hunyuan-moe A13B Q6_K          |  61.75 GiB |    80.39 B | CUDA       |  99 |  1 |           tg128 |          6.73 ± 0.01 |
 | glm4moe 106B.A12B Q4_K - Small |   62.27 GiB |   110.47 B | CUDA       |  99 |  1 |           tg128 |         10.83 ± 0.07 |
+
+## Others
+
+Used llama.cpp as backend and llama-swap as the interface to swap between models. Running main.py will load all models available in llama-swap and send the prompt to each model. This will give an output file on outputs directory. Currently testing on UI generation using Bootstrap as starter.
