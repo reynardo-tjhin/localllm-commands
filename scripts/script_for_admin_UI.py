@@ -85,8 +85,8 @@ def send_single_prompt(prompt: str, link: str, filename: str) -> None:
         print("INFO - request successful; writing to outputs folder")
         data = response.json()
         # write to file
-        with open(f"./outputs/{filename}", "w") as f:
-            json.dump(data, f, indent=2)
+        with open(f"./outputs/{filename}", "w", encoding="utf-16") as f:
+            f.write(data['choices'][0]['message']['content'])
             print("INFO - write file successful")
     else:
         print("ERROR - request failed")
@@ -98,7 +98,7 @@ def main():
 
     # get the prompt from a file
     prompt = ""
-    prompt_filename = "admin-ui-movie.txt"
+    prompt_filename = "admin-dashboard.txt"
     with open(f"./prompts/{prompt_filename}", "r") as f:
         prompt = "".join(f.readlines())
 
@@ -109,7 +109,7 @@ def main():
     with sync_playwright() as p:
 
         print("INFO - launching a new chromium browser")
-        browser = p.chromium.launch(headless=False)
+        browser = p.chromium.launch(headless=True)
 
         print("INFO - launching a new page")
         page = browser.new_page()

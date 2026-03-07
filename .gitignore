@@ -194,6 +194,7 @@ cython_debug/
 .cursorindexingignore
 
 note*
+input*
 output*
 prompt*
 test*

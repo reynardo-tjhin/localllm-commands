@@ -1,6 +1,7 @@
 # localllm-commands
 
-Learning about running local LLMs
+- Learning about running local LLMs
+- Writing scripts to automate human tasks, like reading documents and extracting data
 
 ## Build
 
