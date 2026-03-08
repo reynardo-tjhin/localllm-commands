@@ -22,129 +22,225 @@ from io import BytesIO
 from pdf2image import convert_from_path
 
 # constants
-FOLDER_NAME="TODO"
+FOLDER_NAME="inputs"
 URL="http://192.168.4.128:5000/v1/chat/completions" # http://192.168.4.128:5000/v1/chat/completions
 
 # create the standardised prompt
-# PROMPT = "Do nothing and only respond me with a 'Hi!'"
-PROMPT = """I need you to list
-- the summary description
-- the deploy and copy jobs (they have *_D_* as the deploy job and *_C_* as the copy job)
-- reboot required: yes/no
-- pre-requisites: what's the application pre-requisites?
-- versions.xml
+# PROMPT = "Only do this: reply 'Hi!' in JSON format"
+PROMPT = """Role: You are a Data Extraction Specialist. Your task is to analyze a 'Change Implementation' document and extract specific fields into a structured JSON object for database ingestion.
 
-Answer without any explanation!
-And answer ONLY in JSON format!"""
+INPUT:
+The change implementation document 'typically' has this structure
+- Overview
+- Benefits/Justification
+- Pre-Requisites and Applicability
+- Implementation which consists of
+  - Technical Information: Ignore any details written here
+  - Proview Information
+  - Validation
+  - Verification
+- versions (or versions.xml)
 
-# construct the payload
-payload = {
-    "messages": [
+INSTRUCTIONS:
+1. Analyze the document sections: Overview, Benefits/Justification, Pre-Requisites, Implementation (Proview, Validation, Verification), and Versions.
+2. IGNORE any section labeled "Technical Information".
+3. Output MUST be valid JSON only. Do not include markdown code blocks (```json), comments, or explanations.
+4. If a specific field is missing in the document, use "N/A" for strings, null for objects, or [] for arrays.
+5. For "Validations" (which are phrased as questions), rewrite them as declarative sentences.
+6. For "Versions" (XML data), copy the content exactly as it appears, preserving all characters.
+7. The most important data are pre-requisites, validations, inventory data and versions (XML data).
+
+REQUIRED JSON STRUCTURE:
+{
+  "overview": "String: Short summary of the document.",
+  "jira_ticket": "String: JIRA ID if found, otherwise 'N/A'.",
+  "benefits_justification": [
+    "String: Bullet point summary of benefits."
+  ],
+  "pre_requisites_applicability": {
+    "manufacturer": "String: (e.g., NCR, DN Series, CINEO or WN)",
+    "models": "String: List of models",
+    "application": "String: Application context"
+  },
+  "proview_information": [
+    {
+      "overview": "String: Proview overview if exists, else 'N/A'",
+      "job_names": [
+        "String: List of job names"
+      ],
+      "validations": [
+        "String: Validation criteria converted to full sentences"
+      ],
+      "verifications": [
         {
-            "role": "user",
-            "content": [
-                {
-                    "type": "text",
-                    "text": PROMPT,
-                },
-            ]
+          "header": "String: head (or subtitle) of the section",
+          "information": "String: Summary of key details (registries, file checks)",
+          "inventory_data": [
+            "String: Key-value pairs like 'key = value'"
+          ],
+          "versions": [
+            "String: Raw XML version data (do not summarize)"
+          ]
         }
-    ],
-    "stream": True,
-    "return_progress": True,
-    "reasoning_format": "auto",
-    "temperature": 0.6,
-    "max_tokens": -1,
-    "dynatemp_range": 0,
-    "dynatemp_exponent": 1,
-    "top_k": 20,
-    "top_p": 0.95,
-    "min_p": 0,
-    "xtc_probability": 0,
-    "xtc_threshold": 0.1,
-    "typ_p": 1,
-    "repeat_last_n": 64,
-    "repeat_penalty": 1,
-    "presence_penalty": 0,
-    "frequency_penalty": 0,
-    "dry_multiplier": 0,
-    "dry_base": 1.75,
-    "dry_allowed_length": 2,
-    "dry_penalty_last_n": -1,
-    "samplers": [
-        "penalties",
-        "dry",
-        "top_n_sigma",
-        "top_k",
-        "typ_p",
-        "top_p",
-        "min_p",
-        "xtc",
-        "temperature"
-    ],
-    "timings_per_token": True,
+      ]
+    }
+  ],
+  "other_information": [
+    "String: Any other key details not captured above"
+  ]
 }
 
-# get the input file
-input_file = os.path.join(os.curdir, "inputs", "Change_Implemetation_RejectRecycleOFF.pdf")
+IMPORTANT: Ensure the output is strictly parseable JSON.
+"""
 
-# convert PDF to images
-images = convert_from_path(input_file, dpi=300, fmt="png")
-for image in images:
+# iterate each file in the folder
+output_json = {}
+for filename in os.listdir(os.path.join(os.curdir, FOLDER_NAME)):
     
-    # convert to Base64
-    buffered = BytesIO()
-    image.save(buffered, format='PNG')
-    base64_img = base64.b64encode(buffered.getvalue()).decode('utf-8')
-    
-    # construct the image payload
-    img_payload = {
-        "type": "image_url",
-        "image_url": {
-            "url": f"data:image/png;base64,{base64_img}"
-        }
+    # construct the payload
+    payload = {
+        "messages": [
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": PROMPT,
+                    },
+                ]
+            }
+        ],
+        "stream": False,
+        "return_progress": False,
+        "reasoning_format": "auto",
+        "temperature": 0.6,
+        "max_tokens": -1,
+        "dynatemp_range": 0,
+        "dynatemp_exponent": 1,
+        "top_k": 20,
+        "top_p": 0.95,
+        "min_p": 0,
+        "xtc_probability": 0,
+        "xtc_threshold": 0.1,
+        "typ_p": 1,
+        "repeat_last_n": 64,
+        "repeat_penalty": 1,
+        "presence_penalty": 0,
+        "frequency_penalty": 0,
+        "dry_multiplier": 0,
+        "dry_base": 1.75,
+        "dry_allowed_length": 2,
+        "dry_penalty_last_n": -1,
+        "samplers": [
+            "penalties",
+            "dry",
+            "top_n_sigma",
+            "top_k",
+            "typ_p",
+            "top_p",
+            "min_p",
+            "xtc",
+            "temperature"
+        ],
+        "timings_per_token": True,
     }
-    payload.get("messages")[0].get("content").append(img_payload)
     
-# DEBUG: dump the payload
-# with open(os.path.join(os.curdir, "outputs", "test.json"), "w") as f:
-#     json.dump(payload, f, indent=2)
+    print()
+    print(f"Processing: {filename}")
     
-    
+    # get the input file
+    # filename = "Change_Implemetation_RejectRecycleOFF.pdf"
+    input_file = os.path.join(os.curdir, "inputs", filename)
 
-# create the request
-response = requests.post(
-    url=URL,
-    headers={
-        "Content-Type": "application/json",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:144.0) Gecko/20100101 Firefox/144.0"
-    },
-    json=payload,
-    stream=True
-)
+    # convert PDF to images
+    images = convert_from_path(input_file, dpi=300, fmt="png")
+    for image in images:
+        
+        # convert to Base64
+        buffered = BytesIO()
+        image.save(buffered, format='PNG')
+        base64_img = base64.b64encode(buffered.getvalue()).decode('utf-8')
+        
+        # construct the image payload
+        img_payload = {
+            "type": "image_url",
+            "image_url": {
+                "url": f"data:image/png;base64,{base64_img}"
+            }
+        }
+        payload.get("messages")[0].get("content").append(img_payload)
+        
+    print("\tConverted PDF to Images successfully")
+        
+    # DEBUG: dump the payload
+    # with open(os.path.join(os.curdir, "outputs", "test.json"), "w") as f:
+    #     json.dump(payload, f, indent=2)
 
-# stream the response
-if response.status_code == 200:
-    for line in response.iter_lines():
-        if line:
-            try:
-                decoded_line = line.decode('utf-8')
-                decoded_line = json.loads(decoded_line[6:])
-                # print(decoded_line['choices'][0])
-                
-                if (decoded_line['choices'][0]['delta'].get('reasoning_content')):
-                    print(decoded_line['choices'][0]['delta']['reasoning_content'], end="", flush=True)
+    # create the request
+    response = requests.post(
+        url=URL,
+        headers={
+            "Content-Type": "application/json",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:144.0) Gecko/20100101 Firefox/144.0"
+        },
+        json=payload,
+        stream=False
+    )
+
+    # stream the response
+    if response.status_code == 200:
+        
+        # get response in JSON format
+        data = response.json()
+
+        # get the reasoning content/thinking process
+        # print("Reasoning Content")
+        # print(data['choices'][0]['message']['reasoning_content'])
+        
+        # get the actual content
+        # print("---")
+        # print("Content")
+        content = data['choices'][0]['message']['content']
+        try:
+            json_content = json.loads(content)
+            # print(json_content)
+            output_json[filename] = json_content # add to overall json output
+            
+            # write to the file
+            with open(os.path.join(os.curdir, "outputs", "output.json"), "w") as fp:
+                json.dump(output_json, fp)
+            print("\tWrite to file successful")
+        
+        except json.decoder.JSONDecodeError as e:
+            print("\tFailed to parse content to JSON format")
+            
+            # write as a text string
+            with open(os.path.join(os.curdir, "outputs", f"{filename}.txt"), "w") as f:
+                f.write(content)
+        
+        finally:
+            # print("Completed!")
+            response.close()
+        
+        # for streaming: also in the payload: "stream=True, return_progress=True"
+        # for line in response.iter_lines():
+        #     if line:
+        #         try:
+        #             decoded_line = line.decode('utf-8')
+        #             decoded_line = json.loads(decoded_line[6:])
+        #             # print(decoded_line['choices'][0])
                     
-                if (decoded_line['choices'][0]['delta'].get('content')):
-                    print(decoded_line['choices'][0]['delta']['content'], end="", flush=True)
+        #             if (decoded_line['choices'][0]['delta'].get('reasoning_content')):
+        #                 print(decoded_line['choices'][0]['delta']['reasoning_content'], end="", flush=True)
+                        
+        #             if (decoded_line['choices'][0]['delta'].get('content')):
+        #                 print(decoded_line['choices'][0]['delta']['content'], end="", flush=True)
 
-            except json.decoder.JSONDecodeError as e:
-                # import traceback
-                # traceback.print_exc()
-                # print(e)
-                continue
-                
-            finally:
-                continue
-
-response.close()
+        #         except json.decoder.JSONDecodeError as e:
+        #             # import traceback
+        #             # traceback.print_exc()
+        #             # print(e)
+        #             continue
+                    
+        #         finally:
+        #             continue
