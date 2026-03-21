@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scripts Progress</title>
+</head>
+<body>
+    <h1>Scripts Progress</h1>
+
+    <form method="post" id="startButton">
+        <button type="submit">Start</button>
+    </form>
+
+    <p>This is the latest output: <span id="latest"></span></p>
+    <p>This is all the output:</p>
+    <ul id="output"></ul>
+
+    <script>
+        var latest_content = document.getElementById("latest");
+        var target_output = document.getElementById("output");
+        var learn_update = new EventSource("/stream");
+
+        learn_update.onmessage = function (e) {
+
+            console.log(e);
+
+            if (e.data === "done") {
+                learn_update.close();
+            } else {
+                latest_content.textContent = e.data;
+                var item = document.createElement("li");
+                item.textContent = e.data;
+                target_output.appendChild(item);
+            }
+        };
+
+        document.getElementById("startButton").addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            const _ = await fetch("/start-worker", {
+                method: "POST",
+            });
+        });
+    </script>
+</body>
+</html>

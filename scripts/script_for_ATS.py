@@ -95,7 +95,7 @@ IMPORTANT: Ensure the output is strictly parseable JSON.
 
 # iterate each file in the folder
 output_json = {}
-for filename in os.listdir(os.path.join(os.curdir, FOLDER_NAME)):
+for filename in os.listdir(os.path.join(os.pardir, FOLDER_NAME)):
     
     # construct the payload
     payload = {
@@ -113,7 +113,7 @@ for filename in os.listdir(os.path.join(os.curdir, FOLDER_NAME)):
         "stream": False,
         "return_progress": False,
         "reasoning_format": "auto",
-        "temperature": 0.6,
+        "temperature": 1.0,
         "max_tokens": -1,
         "dynatemp_range": 0,
         "dynatemp_exponent": 1,
@@ -125,7 +125,7 @@ for filename in os.listdir(os.path.join(os.curdir, FOLDER_NAME)):
         "typ_p": 1,
         "repeat_last_n": 64,
         "repeat_penalty": 1,
-        "presence_penalty": 0,
+        "presence_penalty": 1.5,
         "frequency_penalty": 0,
         "dry_multiplier": 0,
         "dry_base": 1.75,
@@ -150,7 +150,7 @@ for filename in os.listdir(os.path.join(os.curdir, FOLDER_NAME)):
     
     # get the input file
     # filename = "Change_Implemetation_RejectRecycleOFF.pdf"
-    input_file = os.path.join(os.curdir, "inputs", filename)
+    input_file = os.path.join(os.pardir, "inputs", filename)
 
     # convert PDF to images
     images = convert_from_path(input_file, dpi=300, fmt="png")
@@ -207,7 +207,7 @@ for filename in os.listdir(os.path.join(os.curdir, FOLDER_NAME)):
             output_json[filename] = json_content # add to overall json output
             
             # write to the file
-            with open(os.path.join(os.curdir, "outputs", "output.json"), "w") as fp:
+            with open(os.path.join(os.pardir, "outputs", "output.json"), "w") as fp:
                 json.dump(output_json, fp)
             print("\tWrite to file successful")
         
@@ -215,7 +215,7 @@ for filename in os.listdir(os.path.join(os.curdir, FOLDER_NAME)):
             print("\tFailed to parse content to JSON format")
             
             # write as a text string
-            with open(os.path.join(os.curdir, "outputs", f"{filename}.txt"), "w") as f:
+            with open(os.path.join(os.pardir, "outputs", f"{filename}.txt"), "w") as f:
                 f.write(content)
         
         finally:
