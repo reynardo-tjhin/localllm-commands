@@ -1,6 +1,6 @@
 from flask import Flask, render_template, Response, stream_with_context, request
 from multiprocessing import Process, Queue
-# from .models import EventManager, EventQueue
+from .models import EventManager
 
 from scripts.base_script import execute
 
@@ -8,8 +8,8 @@ from scripts.base_script import execute
 output_queue = Queue()
 
 # create event manager
-# evt_manager = EventManager()
-# evt_manager.add_event(new_event)
+evt_manager = EventManager(output_queue)
+evt_manager.add_event(execute)
 
 def create_app():
     # create the app object
@@ -31,12 +31,11 @@ def create_app():
             
             # create a process
             print("Starting a worker")
-            new_process = Process(target=execute, args=(output_queue,))
-            new_process.daemon = False
-            new_process.start()
+            # new_process = Process(target=execute, args=(output_queue,))
+            # new_process.daemon = False
+            # new_process.start()
             
-            # print("Starting a worker")
-            # evt_manager.start_event(0)
+            evt_manager.start_event(0)
             
             # return a None response
             return Response(None)
