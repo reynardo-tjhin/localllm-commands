@@ -1,15 +1,18 @@
 from flask import Flask, render_template, Response, stream_with_context, request
-from multiprocessing import Process, Queue
-from .models import EventManager
+from multiprocessing import Queue
+from .models import EventManager, Event
 
 from scripts.base_script import execute
 
 # shared queue that outlives any single request
 output_queue = Queue()
 
+# create new event
+new_evt = Event(execute_fn=execute)
+
 # create event manager
 evt_manager = EventManager(output_queue)
-evt_manager.add_event(execute)
+evt_manager.add_event(new_evt)
 
 def create_app():
     # create the app object

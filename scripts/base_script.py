@@ -1,7 +1,7 @@
 from multiprocessing import Queue
 # from src.models import EventQueue
 
-def execute(output_queue):
+def execute(output_queue: Queue):
 
     output_queue.put("")
     
