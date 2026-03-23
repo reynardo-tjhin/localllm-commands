@@ -20,11 +20,7 @@ def create_app():
     
     # main page
     @app.route("/")
-    def index():
-        
-        # register all Events
-        # - event object
-        
+    def index() -> str:
         return render_template("home.html")
     
     # start worker
@@ -34,18 +30,25 @@ def create_app():
             
             # create a process
             print("Starting a worker")
-            # new_process = Process(target=execute, args=(output_queue,))
-            # new_process.daemon = False
-            # new_process.start()
-            
             evt_manager.start_event(0)
             
             # return a None response
             return Response(None)
+        
+    @app.route("/stop-worker", methods=["POST"])
+    def stop_worker() -> Response:
+        if (request.method == "POST"):
+            
+            # ending a process
+            print("Ending a worker")
+            evt_manager.stop_event(0)
+            
+            # retur a None response
+            return Response(None)
     
     # stream some stuff
     @app.route("/stream")
-    def stream():
+    def stream() -> Response:
         def generate():
             while True:
                 item = output_queue.get() # blocks until data is available

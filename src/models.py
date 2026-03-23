@@ -1,22 +1,6 @@
 from dataclasses import dataclass
 from multiprocessing import Process, Queue
-from typing import List, Callable
-
-# @dataclass
-# class Event:
-#     """Class for an event with tasks"""
-#     name: str
-#     description: str
-#     task_count: int
-#     execute_fn: Callable[[Queue], None] # function that takes in zero arguments and return None
-#     output_queue: Queue
-    
-#     def __init__(self, name: str, description: str, task_count: int, execute_fn: Callable[[Queue], None], output_queue: Queue):
-#         self.name = name
-#         self.description = description
-#         self.task_count = task_count
-#         self.execute_fn = execute_fn
-#         self.output_queue = output_queue
+from typing import List, Callable, Dict
 
 @dataclass
 class Event:
@@ -31,10 +15,12 @@ class EventManager:
     """Class to handle events"""
     output_queue: Queue
     events: List[Event]
+    running_processes: Dict[int, Process]
     
     def __init__(self, output_queue: Queue):
         self.events = []
         self.output_queue = output_queue
+        self.running_processes = {}
     
     def add_event(self, event: Event) -> None:
         if event is not None:
@@ -52,7 +38,28 @@ class EventManager:
         
         new_process = Process(target=self.events[index].execute_fn, args=(self.output_queue,))
         new_process.daemon = False
-        new_process.start()
+        try:
+            new_process.start()
+            self.running_processes[index] = new_process
+        except Exception:
+            raise Exception("Issue with starting a process")
+        
+    def stop_event(self, index: int) -> bool:
+        if (index is None):
+            raise TypeError("index cannot be None")
+    
+        if (index < 0):
+            raise ValueError("index cannot be less than 0")
+    
+        if (index > len(self.events) - 1):
+            raise ValueError("index cannot be greater than the total number of events")
+        
+        if (self.running_processes.get(index) is None):
+            raise KeyError(f"Event with index {index} is not running")
+    
+        running_process = self.running_processes.get(index)
+        running_process.kill()
+        return True
         
     def event_status(self, index: int) -> str:
         pass

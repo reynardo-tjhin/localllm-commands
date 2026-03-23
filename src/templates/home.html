@@ -12,18 +12,22 @@
         <button type="submit">Start</button>
     </form>
 
+    <form method="post" id="stopButton">
+        <button type="submit">Stop</button>
+    </form>
+
     <p>This is the latest output: <span id="latest"></span></p>
     <p>This is all the output:</p>
-    <ul id="output"></ul>
-
+    <div class="scrollable" style="height: 300px; overflow: auto;">
+        <ul id="output"></ul>
+    </div>
+    
     <script>
         var latest_content = document.getElementById("latest");
         var target_output = document.getElementById("output");
         var learn_update = new EventSource("/stream");
 
         learn_update.onmessage = function (e) {
-
-            console.log(e);
 
             if (e.data === "done") {
                 learn_update.close();
@@ -37,8 +41,14 @@
 
         document.getElementById("startButton").addEventListener("submit", async function (event) {
             event.preventDefault();
-
             const _ = await fetch("/start-worker", {
+                method: "POST",
+            });
+        });
+
+        document.getElementById("stopButton").addEventListener("submit", async function (event) {
+            event.preventDefault();
+            const _ = await fetch("/stop-worker", {
                 method: "POST",
             });
         });
