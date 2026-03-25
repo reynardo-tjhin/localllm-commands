@@ -5,9 +5,13 @@ from typing import List, Callable, Dict
 @dataclass
 class Event:
     """Class for an event with tasks"""
+    name: str
+    description: str
     execute_fn: Callable[[Queue], None]
     
-    def __init__(self, execute_fn: Callable[[Queue], None]):
+    def __init__(self, name: str, description: str, execute_fn: Callable[[Queue], None]):
+        self.name = name
+        self.description = description
         self.execute_fn = execute_fn
         
 @dataclass
@@ -43,7 +47,7 @@ class EventManager:
             self.running_processes[index] = new_process
         except Exception:
             raise Exception("Issue with starting a process")
-        
+                
     def stop_event(self, index: int) -> bool:
         if (index is None):
             raise TypeError("index cannot be None")
@@ -58,7 +62,7 @@ class EventManager:
             raise KeyError(f"Event with index {index} is not running")
     
         running_process = self.running_processes.get(index)
-        running_process.kill()
+        running_process.terminate() # graceful shutdown process
         return True
         
     def event_status(self, index: int) -> str:

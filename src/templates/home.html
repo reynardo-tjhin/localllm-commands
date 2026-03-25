@@ -1,27 +1,104 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scripts Progress</title>
+
+    <style>
+        body {
+            background-color: black;
+            margin-left: 100px;
+            margin-right: 100px;
+            margin-top: 50px;
+            color: white;
+        }
+
+        .content {
+            display: flex;
+        }
+
+        .events {
+            background-color: #18181b;
+            width: 400px;
+            height: 600px;
+            border-radius: 30px;
+            margin: 10px;
+            padding: 30px;
+            color: white;
+        }
+
+        .logs {
+            background-color: #18181b;
+            width: 800px;
+            height: 600px;
+            margin: 10px;
+            padding: 30px;
+            font-size: xx-large;
+            overflow-y: scroll;
+        }
+
+        .card {
+            background-color: grey;
+            border-radius: 30px;
+            padding: 20px;
+        }
+
+        .card h2 {
+            margin: 0px;
+        }
+
+        .buttons {
+            display: flex;
+        }
+
+        table {
+            overflow-y: auto;
+        }
+    </style>
 </head>
+
 <body>
     <h1>Scripts Progress</h1>
 
-    <form method="post" id="startButton">
-        <button type="submit">Start</button>
-    </form>
+    <div class="content">
+        <!-- List of events/scripts -->
+        <div class="events">
+            <h1>Events</h1>
 
-    <form method="post" id="stopButton">
-        <button type="submit">Stop</button>
-    </form>
+            {% for event in events %}
+            <div class="card">
+                <h2>{{ event.name }}</h2>
+                <p>{{ event.description }}</p>
 
-    <p>This is the latest output: <span id="latest"></span></p>
-    <p>This is all the output:</p>
-    <div class="scrollable" style="height: 300px; overflow: auto;">
-        <ul id="output"></ul>
+                <div class="buttons">
+                    <form method="post" id="startForm">
+                        <button type="submit" id="startButton">Start</button>
+                    </form>
+
+                    <form method="post" id="stopForm">
+                        <button type="submit" id="stopButton">Stop</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Logs -->
+        <div class="logs">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Event</th>
+                    </tr>
+                </thead>
+                <tbody id="eventBody"></tbody>
+            </table>
+        </div>
     </div>
-    
+
     <script>
         var latest_content = document.getElementById("latest");
         var target_output = document.getElementById("output");
@@ -32,21 +109,37 @@
             if (e.data === "done") {
                 learn_update.close();
             } else {
-                latest_content.textContent = e.data;
-                var item = document.createElement("li");
-                item.textContent = e.data;
-                target_output.appendChild(item);
+                var timestamp = e.data.split(",")[0];
+                var log = e.data.split(",")[1];
+
+                // latest_content.textContent = e.data;
+                // item.textContent = e.data;
+                // target_output.appendChild(item);
+
+                var tableRow = document.createElement("tr");
+
+                var tableData1 = document.createElement("td");
+                tableData1.textContent = timestamp;
+                
+                var tableData2 = document.createElement("td");
+                tableData2.textContent = log;
+
+                tableRow.append(tableData1);
+                tableRow.append(tableData2);
+                document.getElementById("eventBody").append(tableRow);
             }
         };
 
-        document.getElementById("startButton").addEventListener("submit", async function (event) {
+        document.getElementById("startForm").addEventListener("submit", async function (event) {
             event.preventDefault();
+            // startButton = document.getElementById("startButton");
+            // startButton.disabled = true;
             const _ = await fetch("/start-worker", {
                 method: "POST",
             });
         });
 
-        document.getElementById("stopButton").addEventListener("submit", async function (event) {
+        document.getElementById("stopForm").addEventListener("submit", async function (event) {
             event.preventDefault();
             const _ = await fetch("/stop-worker", {
                 method: "POST",
@@ -54,4 +147,5 @@
         });
     </script>
 </body>
+
 </html>

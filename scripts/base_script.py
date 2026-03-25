@@ -9,5 +9,5 @@ def execute(output_queue: Queue):
     
     # sending keep alive
     while True:
-        output_queue.put(datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ": I'm alive.")
+        output_queue.put(datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ",I'm alive.")
         sleep(2)

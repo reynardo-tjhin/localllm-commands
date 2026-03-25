@@ -8,7 +8,7 @@ from scripts.base_script import execute
 output_queue = Queue()
 
 # create new event
-new_evt = Event(execute_fn=execute)
+new_evt = Event("Keep Alive Event", "Sending Keep Alive", execute_fn=execute)
 
 # create event manager
 evt_manager = EventManager(output_queue)
@@ -21,7 +21,13 @@ def create_app():
     # main page
     @app.route("/")
     def index() -> str:
-        return render_template("home.html")
+        events = [
+            {
+                "name": event.name,
+                "description": event.description,
+            } for event in evt_manager.events
+        ]
+        return render_template("home.html", events=events)
     
     # start worker
     @app.route("/start-worker", methods=["POST"])
