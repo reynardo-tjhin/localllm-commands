@@ -1,13 +1,14 @@
 from flask import Flask, render_template, Response, stream_with_context, request
 from multiprocessing import Queue
 from .models import EventManager, Event
+from queue import Empty
 
-from scripts.base_script import execute
+from scripts.keep_alive_script import execute
 
 # shared queue that outlives any single request
 output_queue = Queue()
 
-# create new event
+# create new events
 new_evt = Event("Keep Alive Event", "Sending Keep Alive", execute_fn=execute)
 
 # create event manager
@@ -56,14 +57,19 @@ def create_app():
     @app.route("/stream")
     def stream() -> Response:
         def generate():
+            
+            # stream
             while True:
-                item = output_queue.get() # blocks until data is available
-                if item is None:
-                    yield f"data: done\n\n"
-                    break
-                elif item != "":
-                    print(item)
-                    yield f"data: {item}\n\n"
+                try:
+                    item = evt_manager.output_queue.get(timeout=0.5) # blocks until data is available
+                    if item is None:
+                        yield f"data: done\n\n"
+                        break
+                    elif item != "":
+                        print(item)
+                        yield f"data: {item}\n\n"
+                except Empty:
+                    continue
         
         response = Response(stream_with_context(generate()), mimetype="text/event-stream")
 

@@ -35,7 +35,7 @@
             height: 600px;
             margin: 10px;
             padding: 30px;
-            font-size: xx-large;
+            font-size: x-large;
             overflow-y: scroll;
         }
 
@@ -55,6 +55,7 @@
 
         table {
             overflow-y: auto;
+            text-align: left;
         }
     </style>
 </head>
@@ -90,8 +91,8 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Timestamp</th>
-                        <th>Event</th>
+                        <th style="width: 300px;">Timestamp</th>
+                        <th style="width: 600px;">Event</th>
                     </tr>
                 </thead>
                 <tbody id="eventBody"></tbody>
@@ -100,21 +101,22 @@
     </div>
 
     <script>
-        var latest_content = document.getElementById("latest");
-        var target_output = document.getElementById("output");
+        // create ane Event Source
         var learn_update = new EventSource("/stream");
 
+        // listen on new messages
         learn_update.onmessage = function (e) {
 
+            // once closed, it needs to reopen to receive messages
             if (e.data === "done") {
+                console.log("Received 'done'; closing Event Source");
                 learn_update.close();
+
             } else {
+                console.log("Received: " + e.data);
+
                 var timestamp = e.data.split(",")[0];
                 var log = e.data.split(",")[1];
-
-                // latest_content.textContent = e.data;
-                // item.textContent = e.data;
-                // target_output.appendChild(item);
 
                 var tableRow = document.createElement("tr");
 
@@ -127,7 +129,6 @@
                 tableRow.append(tableData1);
                 tableRow.append(tableData2);
                 document.getElementById("eventBody").prepend(tableRow);
-                // document.getElementById("eventBody").append(tableRow);
             }
         };
 

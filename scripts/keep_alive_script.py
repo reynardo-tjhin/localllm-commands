@@ -3,9 +3,6 @@ from time import sleep
 from datetime import datetime
 
 def execute(output_queue: Queue):
-
-    # initial put -> an empty put
-    output_queue.put("")
     
     # sending keep alive
     while True:
