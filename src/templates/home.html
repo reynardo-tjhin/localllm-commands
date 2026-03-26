@@ -126,7 +126,8 @@
 
                 tableRow.append(tableData1);
                 tableRow.append(tableData2);
-                document.getElementById("eventBody").append(tableRow);
+                document.getElementById("eventBody").prepend(tableRow);
+                // document.getElementById("eventBody").append(tableRow);
             }
         };
 

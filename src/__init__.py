@@ -62,8 +62,23 @@ def create_app():
                     yield f"data: done\n\n"
                     break
                 elif item != "":
+                    print(item)
                     yield f"data: {item}\n\n"
         
-        return Response(stream_with_context(generate()), mimetype="text/event-stream")
+        response = Response(stream_with_context(generate()), mimetype="text/event-stream")
+
+        # Set the Content-Type header to 'text/event-stream' to indicate that 
+        # the response will be an SSE stream
+        response.headers["Content-Type"] = "text/event-stream"
+
+        # Prevent caching of the stream (important to ensure real-time updates)
+        response.headers["Cache-Control"] = "no-cache"
+
+        # disables Nginx buffering if behind a proxy
+        response.headers["X-Accel-Buffering"] = "no" 
+
+        # Keep the connection alive to continuously send events
+        response.headers["Connection"] = "keep-alive"
+        return response
     
     return app
