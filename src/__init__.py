@@ -57,6 +57,8 @@ def create_app():
     @app.route("/stream")
     def stream() -> Response:
         def generate():
+
+            yield f"data: ready\n\n"
             
             # stream
             while True:

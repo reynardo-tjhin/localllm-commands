@@ -101,48 +101,60 @@
     </div>
 
     <script>
-        // create ane Event Source
-        var learn_update = new EventSource("/stream");
-
-        // listen on new messages
-        learn_update.onmessage = function (e) {
-
-            // once closed, it needs to reopen to receive messages
-            if (e.data === "done") {
-                console.log("Received 'done'; closing Event Source");
-                learn_update.close();
-
-            } else {
-                console.log("Received: " + e.data);
-
-                var timestamp = e.data.split(",")[0];
-                var log = e.data.split(",")[1];
-
-                var tableRow = document.createElement("tr");
-
-                var tableData1 = document.createElement("td");
-                tableData1.textContent = timestamp;
-                
-                var tableData2 = document.createElement("td");
-                tableData2.textContent = log;
-
-                tableRow.append(tableData1);
-                tableRow.append(tableData2);
-                document.getElementById("eventBody").prepend(tableRow);
-            }
-        };
-
+        let learn_update;
         document.getElementById("startForm").addEventListener("submit", async function (event) {
             event.preventDefault();
+
             // startButton = document.getElementById("startButton");
             // startButton.disabled = true;
-            const _ = await fetch("/start-worker", {
-                method: "POST",
-            });
+            
+            // create ane Event Source
+            learn_update = new EventSource("/stream");
+
+            // listen on new messages
+            learn_update.onmessage = function (e) {
+
+                // check if ready
+                if (e.data === "ready") {
+
+                    // start the worker
+                    fetch("/start-worker", {
+                        method: "POST",
+                    });
+                    return;
+                }
+                
+                // once closed, it needs to reopen to receive messages
+                else if (e.data === "done") {
+                    console.log("Received 'done'; closing Event Source");
+                    learn_update.close();
+
+                } else {
+                    console.log("Received: " + e.data);
+
+                    var timestamp = e.data.split(",")[0];
+                    var log = e.data.split(",")[1];
+
+                    var tableRow = document.createElement("tr");
+
+                    var tableData1 = document.createElement("td");
+                    tableData1.textContent = timestamp;
+                    
+                    var tableData2 = document.createElement("td");
+                    tableData2.textContent = log;
+
+                    tableRow.append(tableData1);
+                    tableRow.append(tableData2);
+                    document.getElementById("eventBody").prepend(tableRow);
+                }
+            };
         });
 
         document.getElementById("stopForm").addEventListener("submit", async function (event) {
             event.preventDefault();
+            
+            learn_update.close();
+            
             const _ = await fetch("/stop-worker", {
                 method: "POST",
             });
