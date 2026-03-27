@@ -1,23 +1,23 @@
 from flask import Flask, render_template, Response, stream_with_context, request
-from multiprocessing import Queue
-from .models import EventManager, Event
 from queue import Empty
+from . import db, config
+from .models import EventManager, Event
 
 from scripts.keep_alive_script import execute
-
-# shared queue that outlives any single request
-output_queue = Queue()
 
 # create new events
 new_evt = Event("Keep Alive Event", "Sending Keep Alive", execute_fn=execute)
 
 # create event manager
-evt_manager = EventManager(output_queue)
+evt_manager = EventManager()
 evt_manager.add_event(new_evt)
 
 def create_app():
     # create the app object
     app = Flask(__name__)
+    
+    # register database
+    db.init_app(app=app)
     
     # main page
     @app.route("/")

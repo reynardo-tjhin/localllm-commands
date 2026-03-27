@@ -21,9 +21,9 @@ class EventManager:
     events: List[Event]
     running_processes: Dict[int, Process]
     
-    def __init__(self, output_queue: Queue):
+    def __init__(self):
         self.events = []
-        self.output_queue = output_queue
+        self.output_queue = Queue()
         self.running_processes = {}
     
     def add_event(self, event: Event) -> None:
