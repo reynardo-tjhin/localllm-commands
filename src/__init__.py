@@ -1,18 +1,13 @@
-from flask import Flask, render_template, Response, stream_with_context, request, jsonify
-from queue import Empty
-from . import db, config
-from .models import EventManager, Event
+from flask import Flask, Response, render_template, jsonify, request
+from . import db, config, load_scripts
 
-from scripts.keep_alive_script import execute
+def create_app() -> Flask:
+    # load config
+    config.load_config()
 
-# create new events
-new_evt = Event("Keep Alive Event", "Sending Keep Alive", execute_fn=execute)
-
-# create event manager
-evt_manager = EventManager()
-evt_manager.add_event(new_evt)
-
-def create_app():
+    # load events
+    evt_manager = load_scripts.scripts_init()
+    
     # create the app object
     app = Flask(__name__)
     
@@ -31,7 +26,7 @@ def create_app():
         ]
         return render_template("home.html", events=events)
     
-    # start worker
+    # start worker: create a new process to start a worker
     @app.route("/start-worker", methods=["POST"])
     def start_worker() -> Response:
         if (request.method == "POST"):
@@ -42,7 +37,8 @@ def create_app():
             
             # return a None response
             return Response(None)
-        
+    
+    # end worker: stop a process to end the script
     @app.route("/stop-worker", methods=["POST"])
     def stop_worker() -> Response:
         if (request.method == "POST"):

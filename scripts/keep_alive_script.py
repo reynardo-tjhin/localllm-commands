@@ -4,6 +4,9 @@ from time import sleep
 from datetime import datetime
 from redis import Redis
 
+NAME="Keep Alive Script"
+DESCRIPTION="test 1"
+
 def execute(index: int):
     
     conn = Redis(
