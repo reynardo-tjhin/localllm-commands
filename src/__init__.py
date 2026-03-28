@@ -1,4 +1,4 @@
-from flask import Flask, render_template, Response, stream_with_context, request
+from flask import Flask, render_template, Response, stream_with_context, request, jsonify
 from queue import Empty
 from . import db, config
 from .models import EventManager, Event
@@ -22,6 +22,7 @@ def create_app():
     # main page
     @app.route("/")
     def index() -> str:
+        # get all events
         events = [
             {
                 "name": event.name,
@@ -50,43 +51,22 @@ def create_app():
             print("Ending a worker")
             evt_manager.stop_event(0)
             
-            # retur a None response
+            # return a None response
             return Response(None)
     
-    # stream some stuff
-    @app.route("/stream")
-    def stream() -> Response:
-        def generate():
-
-            yield f"data: ready\n\n"
-            
-            # stream
-            while True:
-                try:
-                    item = evt_manager.output_queue.get(timeout=0.5) # blocks until data is available
-                    if item is None:
-                        yield f"data: done\n\n"
-                        break
-                    elif item != "":
-                        print(item)
-                        yield f"data: {item}\n\n"
-                except Empty:
-                    continue
+    @app.route("/poll", methods=["GET"])
+    def poll():
         
-        response = Response(stream_with_context(generate()), mimetype="text/event-stream")
-
-        # Set the Content-Type header to 'text/event-stream' to indicate that 
-        # the response will be an SSE stream
-        response.headers["Content-Type"] = "text/event-stream"
-
-        # Prevent caching of the stream (important to ensure real-time updates)
-        response.headers["Cache-Control"] = "no-cache"
-
-        # disables Nginx buffering if behind a proxy
-        response.headers["X-Accel-Buffering"] = "no" 
-
-        # Keep the connection alive to continuously send events
-        response.headers["Connection"] = "keep-alive"
-        return response
+        start = 0
+        if (request.args.get("start") is not None):
+            start = int(request.args.get("start"))
+        
+        conn = db.get_db()
+        items = conn.lrange(0, start=start, end=-1)
+        
+        return jsonify({
+            "events": [item for item in items],
+            "end": start+len(items),
+        })
     
     return app

@@ -1,6 +1,9 @@
+import os
+
 from dataclasses import dataclass
 from multiprocessing import Process, Queue
 from typing import List, Callable, Dict
+from redis import Redis
 
 @dataclass
 class Event:
@@ -17,14 +20,21 @@ class Event:
 @dataclass
 class EventManager:
     """Class to handle events"""
-    output_queue: Queue
     events: List[Event]
     running_processes: Dict[int, Process]
+    # output_queue: Queue
+    conn: Redis
     
     def __init__(self):
         self.events = []
-        self.output_queue = Queue()
         self.running_processes = {}
+        # self.output_queue = Queue()
+        self.conn = Redis(
+            host=os.getenv('REDIS_HOST'),
+            port=os.getenv('REDIS_PORT'),
+            decode_responses=True,
+            password=os.getenv('REDIS_PASSWORD'),
+        )
     
     def add_event(self, event: Event) -> None:
         if event is not None:
@@ -40,7 +50,7 @@ class EventManager:
         if (index > len(self.events) - 1):
             raise ValueError("index cannot be greater than the total number of events")
         
-        new_process = Process(target=self.events[index].execute_fn, args=(self.output_queue,))
+        new_process = Process(target=self.events[index].execute_fn, args=(index,))
         new_process.daemon = False
         try:
             new_process.start()

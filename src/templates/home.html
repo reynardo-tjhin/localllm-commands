@@ -101,59 +101,57 @@
     </div>
 
     <script>
-        let learn_update;
+
+        let start = 0;
+        async function poll() {
+            const response = await fetch("/poll?" + new URLSearchParams({
+                start: start,
+            }), {method: "GET"})
+            const result = await response.json()
+
+            // update UI
+            console.log(result.events);
+            console.log(result.end);
+            result.events.forEach((event, _) => {
+
+                var timestamp = event.split(",")[0];
+                var log = event.split(",")[1];
+
+                var tableRow = document.createElement("tr");
+
+                var tableData1 = document.createElement("td");
+                tableData1.textContent = timestamp;
+
+                var tableData2 = document.createElement("td");
+                tableData2.textContent = log;
+
+                tableRow.append(tableData1);
+                tableRow.append(tableData2);
+                document.getElementById("eventBody").prepend(tableRow);
+            });
+            
+            // result.end zero indicates no more events to show
+            if (result.end !== 0) {
+                start = result.end;
+            }
+        }
+        const interval = setInterval(poll, 5000);
+        poll();
+
         document.getElementById("startForm").addEventListener("submit", async function (event) {
             event.preventDefault();
 
-            // startButton = document.getElementById("startButton");
-            // startButton.disabled = true;
-            
-            // create ane Event Source
-            learn_update = new EventSource("/stream");
-
-            // listen on new messages
-            learn_update.onmessage = function (e) {
-
-                // check if ready
-                if (e.data === "ready") {
-
-                    // start the worker
-                    fetch("/start-worker", {
-                        method: "POST",
-                    });
-                    return;
-                }
-                
-                // once closed, it needs to reopen to receive messages
-                else if (e.data === "done") {
-                    console.log("Received 'done'; closing Event Source");
-                    learn_update.close();
-
-                } else {
-                    console.log("Received: " + e.data);
-
-                    var timestamp = e.data.split(",")[0];
-                    var log = e.data.split(",")[1];
-
-                    var tableRow = document.createElement("tr");
-
-                    var tableData1 = document.createElement("td");
-                    tableData1.textContent = timestamp;
-                    
-                    var tableData2 = document.createElement("td");
-                    tableData2.textContent = log;
-
-                    tableRow.append(tableData1);
-                    tableRow.append(tableData2);
-                    document.getElementById("eventBody").prepend(tableRow);
-                }
-            };
+            // start the worker
+            fetch("/start-worker", {
+                method: "POST",
+            });
+            return;
         });
 
         document.getElementById("stopForm").addEventListener("submit", async function (event) {
             event.preventDefault();
             
-            learn_update.close();
+            // learn_update.close();
             
             const _ = await fetch("/stop-worker", {
                 method: "POST",

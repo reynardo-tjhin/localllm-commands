@@ -3,7 +3,7 @@ import os
 
 from flask import Flask, g
 
-def get_db():
+def get_db() -> redis.Redis:
     if 'db' not in g:
         # g is a special object that is unique for each request
         # it is used to store data that might be accessed by multiple functions
@@ -16,13 +16,10 @@ def get_db():
             decode_responses=True,
             password=os.getenv('REDIS_PASSWORD'),
         )
-        # sqlite3.Row tells the connection to return rows that behave like dicts.
-        # This allows accessing the columns by name.
-        # g.db.row_factory = sqlite3.Row
 
     return g.db
 
-def close_db(e=None):
+def close_db(e=None) -> None:
     """
     `close_db` checks if a connection was created by checking if `g.db` was set.
     If the connection exists, it is closed.
@@ -32,5 +29,5 @@ def close_db(e=None):
     if (db is not None):
         db.close()
         
-def init_app(app: Flask):
+def init_app(app: Flask) -> None:
     app.teardown_appcontext(close_db)
