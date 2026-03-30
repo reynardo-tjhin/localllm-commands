@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scripts Progress</title>
+
+    <!-- <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.8/dist/htmx.min.js"></script> -->
+    <style>
+        body {
+            background-color: black;
+            margin-left: 100px;
+            margin-right: 100px;
+            margin-top: 50px;
+            color: white;
+        }
+
+        .content {
+            display: flex;
+        }
+
+        .scripts {
+            background-color: #18181b;
+            width: 400px;
+            height: 600px;
+            border-radius: 30px;
+            margin: 10px;
+            padding: 30px;
+            color: white;
+            overflow-y: scroll;
+        }
+
+        #logs {
+            background-color: #18181b;
+            width: 800px;
+            height: 600px;
+            margin: 10px;
+            padding: 30px;
+            font-size: x-large;
+            overflow-y: scroll;
+        }
+
+        .card {
+            background-color: grey;
+            border-radius: 30px;
+            padding: 20px;
+            margin: 15px;
+        }
+
+        .card h2 {
+            margin: 0px;
+        }
+
+        .buttons {
+            display: flex;
+        }
+
+        table {
+            overflow-y: auto;
+            text-align: left;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Scripts Progress</h1>
+
+    <div class="content">
+        <!-- List of scripts/scripts -->
+        <div class="scripts">
+            <h1>Scripts</h1>
+
+            <!-- <button hx-get="/scripts/0" hx-target="#logs">Click me!</button> -->
+
+            {% for script in scripts %}
+            <div class="card">
+                <h2>{{ script.name }}</h2>
+                <p>{{ script.description }}</p>
+
+                <!-- <button hx-get="/scripts/0" hx-trigger="click" hx-target="#logs" hx-swap="innerHTML">
+                    Show
+                </button> -->
+
+                <div class="buttons">
+                    <button type="button" id="show-{{ loop.index - 1 }}">
+                        Show
+                    </button>
+                    <button type="button" id="close-{{ loop.index - 1 }}">
+                        Close
+                    </button>
+                    <form method="post" id="startForm">
+                        <button type="submit" id="startButton">Start</button>
+                    </form>
+
+                    <form method="post" id="stopForm">
+                        <button type="submit" id="stopButton">Stop</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- <div class="card">
+                <button hx-get="/scripts/0" hx-target="#logs">
+                    <h2>{{ script.name }}</h2>
+                    <p>{{ script.description }}</p>
+
+                    <div class="buttons">
+                        <form method="post" id="startForm">
+                            <button type="submit" id="startButton">Start</button>
+                        </form>
+
+                        <form method="post" id="stopForm">
+                            <button type="submit" id="stopButton">Stop</button>
+                        </form>
+                    </div>
+                </button>
+            </div> -->
+            {% endfor %}
+        </div>
+
+        <!-- Logs -->
+        <div id="logs">
+            <!-- Press one of the scripts on the left to show the logs -->
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 300px;">Timestamp</th>
+                        <th style="width: 600px;">Event</th>
+                    </tr>
+                </thead>
+                <tbody id="eventBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        let setPoll = false;
+        document.getElementById("show-0").addEventListener("click", async function (event) {
+            event.preventDefault();
+            setPoll = true;
+        });
+
+        document.getElementById("close-0").addEventListener("click", async function (event) {
+            event.preventDefault();
+            setPoll = false;
+
+            document.getElementById("logs").textContent = "";
+
+            const table = document.createElement("table");
+            const thead = document.createElement("thead");
+            const tr = document.createElement("tr");
+
+            const tbody = document.createElement("tbody");
+            tbody.id = "eventBody";
+
+            const tableTimestamp = document.createElement("th");
+            tableTimestamp.style = "width: 300px;";
+            tableTimestamp.textContent = "Timestamp";
+            
+            const tableLog = document.createElement("th");
+            tableLog.style = "width: 600px;"
+            tableLog.textContent = "Event";
+
+            tr.appendChild(tableTimestamp);
+            tr.appendChild(tableLog);
+
+            thead.appendChild(tr);
+            table.appendChild(thead);
+            table.appendChild(tbody);
+
+            document.getElementById("logs").appendChild(table);
+        });
+
+        let start = 0;
+        async function poll() {
+            console.log(setPoll);
+            if (setPoll) {
+                const response = await fetch("/poll?" + new URLSearchParams({
+                    start: start,
+                }), { method: "GET" })
+                const result = await response.json()
+
+                // update UI
+                // console.log(result.events);
+                // console.log(result.end);
+                result.events.forEach((event, _) => {
+
+                    var timestamp = event.split(",")[0];
+                    var log = event.split(",")[1];
+
+                    var tableRow = document.createElement("tr");
+
+                    var tableData1 = document.createElement("td");
+                    tableData1.textContent = timestamp;
+
+                    var tableData2 = document.createElement("td");
+                    tableData2.textContent = log;
+
+                    tableRow.append(tableData1);
+                    tableRow.append(tableData2);
+                    document.getElementById("eventBody").prepend(tableRow);
+                });
+
+                // result.end zero indicates no more events to show
+                if (result.end !== 0) {
+                    start = result.end;
+                }
+            }
+        }
+        const interval = setInterval(poll, 5000);
+        poll();
+
+        document.getElementById("startForm").addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            // start the worker
+            fetch("/start-worker", {
+                method: "POST",
+            });
+            return;
+        });
+
+        document.getElementById("stopForm").addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            const _ = await fetch("/stop-worker", {
+                method: "POST",
+            });
+        });
+    </script>
+</body>
+
+</html>

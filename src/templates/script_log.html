@@ -1,0 +1,50 @@
+<!-- <body> -->
+    <!-- Logs -->
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 300px;">Timestamp</th>
+                <th style="width: 600px;">Event</th>
+            </tr>
+        </thead>
+        <tbody id="eventBody"></tbody>
+    </table>
+
+    <!-- <script>
+        let start = 0;
+        async function poll() {
+            const response = await fetch("/poll?" + new URLSearchParams({
+                start: start,
+            }), { method: "GET" })
+            const result = await response.json()
+
+            // update UI
+            // console.log(result.events);
+            // console.log(result.end);
+            result.events.forEach((event, _) => {
+
+                var timestamp = event.split(",")[0];
+                var log = event.split(",")[1];
+
+                var tableRow = document.createElement("tr");
+
+                var tableData1 = document.createElement("td");
+                tableData1.textContent = timestamp;
+
+                var tableData2 = document.createElement("td");
+                tableData2.textContent = log;
+
+                tableRow.append(tableData1);
+                tableRow.append(tableData2);
+                document.getElementById("eventBody").prepend(tableRow);
+            });
+
+            // result.end zero indicates no more events to show
+            if (result.end !== 0) {
+                start = result.end;
+            }
+        }
+        const interval = setInterval(poll, 5000);
+        poll();
+    </script> -->
+<!-- </body> -->

@@ -1,24 +1,14 @@
-import os
-
 from time import sleep
-from datetime import datetime
-from redis import Redis
+from src.logger import Logger
 
 NAME="Keep Alive Script"
 DESCRIPTION="test 1"
 
 def execute(index: int):
     
-    conn = Redis(
-        host=os.getenv('REDIS_HOST'),
-        port=os.getenv('REDIS_PORT'),
-        decode_responses=True,
-        password=os.getenv('REDIS_PASSWORD'),
-    )
+    logger = Logger()
     
     # sending keep alive
     while True:
-        # output_queue.put(datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ",I'm alive.")
-        log = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ",I'm alive."
-        conn.rpush(str(index), log)
+        logger.log("I'm alive.")
         sleep(2)

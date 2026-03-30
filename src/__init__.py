@@ -5,8 +5,8 @@ def create_app() -> Flask:
     # load config
     config.load_config()
 
-    # load events
-    evt_manager = load_scripts.scripts_init()
+    # load scripts
+    script_manager = load_scripts.scripts_init()
     
     # create the app object
     app = Flask(__name__)
@@ -17,14 +17,14 @@ def create_app() -> Flask:
     # main page
     @app.route("/")
     def index() -> str:
-        # get all events
-        events = [
+        # get all scripts
+        scripts = [
             {
-                "name": event.name,
-                "description": event.description,
-            } for event in evt_manager.events
+                "name": script.name,
+                "description": script.description,
+            } for script in script_manager.scripts
         ]
-        return render_template("home.html", events=events)
+        return render_template("home.html", scripts=scripts)
     
     # start worker: create a new process to start a worker
     @app.route("/start-worker", methods=["POST"])
@@ -33,7 +33,7 @@ def create_app() -> Flask:
             
             # create a process
             print("Starting a worker")
-            evt_manager.start_event(0)
+            script_manager.start_script(0)
             
             # return a None response
             return Response(None)
@@ -45,24 +45,30 @@ def create_app() -> Flask:
             
             # ending a process
             print("Ending a worker")
-            evt_manager.stop_event(0)
+            script_manager.end_script(0)
             
             # return a None response
             return Response(None)
     
-    @app.route("/poll", methods=["GET"])
-    def poll():
+    @app.route("/poll/<int:script_id>", methods=["GET"])
+    def poll(script_id: int):
         
         start = 0
         if (request.args.get("start") is not None):
             start = int(request.args.get("start"))
         
         conn = db.get_db()
-        items = conn.lrange(0, start=start, end=-1)
+        items = conn.lrange("script:"+str(script_id), start=start, end=-1)
         
         return jsonify({
             "events": [item for item in items],
             "end": start+len(items),
         })
+    
+    @app.route("/scripts/<int:script_id>", methods=["GET"])
+    def script_log(script_id: int):
+        conn = db.get_db()
+        # items = 
+        return render_template("script_log.html")
     
     return app

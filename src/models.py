@@ -3,11 +3,10 @@ import os
 from dataclasses import dataclass
 from multiprocessing import Process, Queue
 from typing import List, Callable, Dict
-from redis import Redis
 
 @dataclass
-class Event:
-    """Class for an event with tasks"""
+class Script:
+    """Class to store details of Script with tasks"""
     name: str
     description: str
     execute_fn: Callable[[Queue], None]
@@ -18,39 +17,30 @@ class Event:
         self.execute_fn = execute_fn
         
 @dataclass
-class EventManager:
+class ScriptManager:
     """Class to handle events"""
-    events: List[Event]
+    scripts: List[Script]
     running_processes: Dict[int, Process]
-    # output_queue: Queue
-    conn: Redis
     
     def __init__(self):
-        self.events = []
+        self.scripts = []
         self.running_processes = {}
-        # self.output_queue = Queue()
-        self.conn = Redis(
-            host=os.getenv('REDIS_HOST'),
-            port=os.getenv('REDIS_PORT'),
-            decode_responses=True,
-            password=os.getenv('REDIS_PASSWORD'),
-        )
     
-    def add_event(self, event: Event) -> None:
-        if event is not None:
-            self.events.append(event)
+    def add_script(self, script: Script) -> None:
+        if script is not None:
+            self.scripts.append(script)
             
-    def start_event(self, index: int) -> None:
+    def start_script(self, index: int) -> None:
         if (index is None):
             raise TypeError("index cannot be None")
     
         if (index < 0):
             raise ValueError("index cannot be less than 0")
     
-        if (index > len(self.events) - 1):
-            raise ValueError("index cannot be greater than the total number of events")
+        if (index > len(self.scripts) - 1):
+            raise ValueError("index cannot be greater than the total number of scripts")
         
-        new_process = Process(target=self.events[index].execute_fn, args=(index,))
+        new_process = Process(target=self.scripts[index].execute_fn, args=(index,))
         new_process.daemon = False
         try:
             new_process.start()
@@ -58,7 +48,7 @@ class EventManager:
         except Exception:
             raise Exception("Issue with starting a process")
                 
-    def stop_event(self, index: int) -> bool:
+    def end_script(self, index: int) -> bool:
         if (index is None):
             raise TypeError("index cannot be None")
     
@@ -66,14 +56,14 @@ class EventManager:
             raise ValueError("index cannot be less than 0")
     
         if (index > len(self.events) - 1):
-            raise ValueError("index cannot be greater than the total number of events")
+            raise ValueError("index cannot be greater than the total number of scripts")
         
         if (self.running_processes.get(index) is None):
-            raise KeyError(f"Event with index {index} is not running")
+            raise KeyError(f"Script with index {index} is not running")
     
         running_process = self.running_processes.get(index)
         running_process.terminate() # graceful shutdown process
         return True
         
-    def event_status(self, index: int) -> str:
+    def script_status(self, index: int) -> str:
         pass

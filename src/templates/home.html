@@ -5,157 +5,84 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scripts Progress</title>
-
-    <style>
-        body {
-            background-color: black;
-            margin-left: 100px;
-            margin-right: 100px;
-            margin-top: 50px;
-            color: white;
-        }
-
-        .content {
-            display: flex;
-        }
-
-        .events {
-            background-color: #18181b;
-            width: 400px;
-            height: 600px;
-            border-radius: 30px;
-            margin: 10px;
-            padding: 30px;
-            color: white;
-        }
-
-        .logs {
-            background-color: #18181b;
-            width: 800px;
-            height: 600px;
-            margin: 10px;
-            padding: 30px;
-            font-size: x-large;
-            overflow-y: scroll;
-        }
-
-        .card {
-            background-color: grey;
-            border-radius: 30px;
-            padding: 20px;
-        }
-
-        .card h2 {
-            margin: 0px;
-        }
-
-        .buttons {
-            display: flex;
-        }
-
-        table {
-            overflow-y: auto;
-            text-align: left;
-        }
-    </style>
 </head>
 
 <body>
-    <h1>Scripts Progress</h1>
-
-    <div class="content">
-        <!-- List of events/scripts -->
-        <div class="events">
-            <h1>Events</h1>
-
-            {% for event in events %}
-            <div class="card">
-                <h2>{{ event.name }}</h2>
-                <p>{{ event.description }}</p>
-
-                <div class="buttons">
-                    <form method="post" id="startForm">
-                        <button type="submit" id="startButton">Start</button>
-                    </form>
-
-                    <form method="post" id="stopForm">
-                        <button type="submit" id="stopButton">Stop</button>
-                    </form>
-                </div>
-            </div>
-            {% endfor %}
+    <div class="content" style="display: flex; margin: 100px;">
+        <div class="buttons" style="display: flex; flex-direction: column; padding: 30px;">
+            <button type="button" class="showButton" data-script-id="0">Show Script 0</button>
+            <button type="button" class="showButton" data-script-id="1">Show Script 1</button>
+            <button type="button" id="clearButton">Clear</button>
         </div>
 
-        <!-- Logs -->
-        <div class="logs">
+        <div id="table" class="table">
             <table>
                 <thead>
-                    <tr>
-                        <th style="width: 300px;">Timestamp</th>
-                        <th style="width: 600px;">Event</th>
-                    </tr>
+                    <th style="width: 300px; text-align: left;">Timestamp</th>
+                    <th style="width: 600px; text-align: left;">Event</th>
                 </thead>
-                <tbody id="eventBody"></tbody>
+                <tbody id="tableBody"></tbody>
             </table>
         </div>
     </div>
 
     <script>
-
+        let state = -1;
         let start = 0;
         async function poll() {
-            const response = await fetch("/poll?" + new URLSearchParams({
-                start: start,
-            }), {method: "GET"})
-            const result = await response.json()
-
-            // update UI
-            console.log(result.events);
-            console.log(result.end);
-            result.events.forEach((event, _) => {
-
-                var timestamp = event.split(",")[0];
-                var log = event.split(",")[1];
-
-                var tableRow = document.createElement("tr");
-
-                var tableData1 = document.createElement("td");
-                tableData1.textContent = timestamp;
-
-                var tableData2 = document.createElement("td");
-                tableData2.textContent = log;
-
-                tableRow.append(tableData1);
-                tableRow.append(tableData2);
-                document.getElementById("eventBody").prepend(tableRow);
-            });
+            console.log("polling '/poll/" + state + "?start=" + start + "'");
             
-            // result.end zero indicates no more events to show
-            if (result.end !== 0) {
-                start = result.end;
-            }
-        }
-        const interval = setInterval(poll, 5000);
-        poll();
+            if (state === -1) return;
+            
+            const response = await fetch("/poll/" + state + "?start=" + start);
+            const result = await response.json();
 
-        document.getElementById("startForm").addEventListener("submit", async function (event) {
-            event.preventDefault();
+            start = result.end;
+            result.events.forEach((event, _) => {
+                const tr = document.createElement("tr");
 
-            // start the worker
-            fetch("/start-worker", {
-                method: "POST",
+                const timestamp = event.split(",")[0];
+                const log = event.split(",")[1];
+
+                const td1 = document.createElement("td");
+                td1.textContent = timestamp;
+
+                const td2 = document.createElement("td");
+                td2.textContent = log;
+
+                tr.appendChild(td1);
+                tr.appendChild(td2);
+                document.getElementById("tableBody").appendChild(tr);
             });
-            return;
+        }
+        const _ = setInterval(poll, 5000);
+
+        document.querySelectorAll(".showButton").forEach(btn => {
+            btn.addEventListener("click", async function (event) {
+
+                // console.log("Show button with Script ID: " + btn.dataset.scriptId + " clicked!");
+
+                event.preventDefault();
+                if (state !== btn.dataset.scriptId) {
+                    // console.log("change state to " + btn.dataset.scriptId + "?start=" + start + "'");
+                    document.getElementById("tableBody").textContent = "";
+                    state = btn.dataset.scriptId;
+                    start = 0;
+                    poll();
+                }
+            });
         });
 
-        document.getElementById("stopForm").addEventListener("submit", async function (event) {
+
+        document.getElementById("clearButton").addEventListener("click", async function (event) {
+            console.log("Clear button clicked!");
+
             event.preventDefault();
-            
-            // learn_update.close();
-            
-            const _ = await fetch("/stop-worker", {
-                method: "POST",
-            });
+            if (state !== -1) {
+                document.getElementById("tableBody").textContent = "";
+                state = -1;
+                start = 0;
+            }
         });
     </script>
 </body>
