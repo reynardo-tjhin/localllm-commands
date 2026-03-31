@@ -63,7 +63,28 @@ class ScriptManager:
     
         running_process = self.running_processes.get(index)
         running_process.terminate() # graceful shutdown process
+        del self.running_processes[index]
         return True
         
-    def script_status(self, index: int) -> str:
-        pass
+    def script_status(self, index: int) -> int:
+        """
+        
+        """
+        {
+            -1: "process is not alive but still lives in the running_processes dictionary",
+            0: "process is alive and also in the running_processes dictionary",
+            1: "process is not in the running_processes dictionary",
+        }
+        
+        running_process = self.running_processes.get(index)
+        if (running_process is not None):
+            is_alive = running_process.is_alive()
+            if (is_alive):
+                return 0 # process returns alive and is also in the dictionary
+            return -1 # process is not alive but still lives in the dictionary
+        return 1 # process is not alive
+        
+        
+        
+        
+        

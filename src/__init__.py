@@ -27,31 +27,40 @@ def create_app() -> Flask:
         return render_template("home.html", scripts=scripts)
     
     # start worker: create a new process to start a worker
-    @app.route("/start-worker", methods=["POST"])
-    def start_worker() -> Response:
+    @app.route("/start-worker/<int:script_id>", methods=["POST"])
+    def start_worker(script_id: int) -> Response:
         if (request.method == "POST"):
             
             # create a process
             print("Starting a worker")
-            script_manager.start_script(0)
+            script_manager.start_script(script_id)
             
             # return a None response
             return Response(None)
     
     # end worker: stop a process to end the script
-    @app.route("/stop-worker", methods=["POST"])
-    def stop_worker() -> Response:
+    @app.route("/stop-worker/<int:script_id>", methods=["POST"])
+    def stop_worker(script_id: int) -> Response:
         if (request.method == "POST"):
             
             # ending a process
             print("Ending a worker")
-            script_manager.end_script(0)
+            script_manager.end_script(script_id)
             
             # return a None response
             return Response(None)
+        
+    # check if worker is running
+    @app.route("/worker-status/<int:script_id>", methods=["GET"])
+    def worker_status(script_id: int) -> Response:
+        status = script_manager.script_status(script_id)
+        return jsonify({
+            "script_id": script_id,
+            "status": status,
+        })
     
     @app.route("/poll/<int:script_id>", methods=["GET"])
-    def poll(script_id: int):
+    def poll(script_id: int) -> Response:
         
         start = 0
         if (request.args.get("start") is not None):
@@ -64,11 +73,5 @@ def create_app() -> Flask:
             "events": [item for item in items],
             "end": start+len(items),
         })
-    
-    @app.route("/scripts/<int:script_id>", methods=["GET"])
-    def script_log(script_id: int):
-        conn = db.get_db()
-        # items = 
-        return render_template("script_log.html")
     
     return app
