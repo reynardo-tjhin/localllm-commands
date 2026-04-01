@@ -72,17 +72,21 @@
         async function poll() {
             console.log("polling '/poll/" + state + "?start=" + start + "'");
 
+            // no need to poll if UI state is empty
             if (state === -1) return;
 
+            // get the events based on the script id
             const response = await fetch("/poll/" + state + "?start=" + start);
             const result = await response.json();
 
             start = result.end;
             renderEvents(result.events);
 
+            // get the status of the script (running, error or stopped)
             const response2 = await fetch("/worker-status/" + state);
             const result2 = await response2.json();
 
+            // stop polling if script is stopped or in error
             if (result2.status !== 0) {
                 clearInterval(intervalId);
                 intervalId = null;
@@ -90,11 +94,7 @@
         }
 
 
-        async function show(scriptId) {
-
-            document.getElementById("tableBody").textContent = "";
-            state = scriptId;
-            start = 0;
+        async function startPolling() {
 
             poll(); // initial poll
 
@@ -102,6 +102,7 @@
             const response = await fetch("/worker-status/" + state);
             const result = await response.json();
 
+            // call polling on an interval if script is running
             if (result.status === 0) {
                 clearInterval(intervalId);
                 intervalId = setInterval(poll, 1000);
@@ -111,14 +112,20 @@
 
         document.querySelectorAll(".showButton").forEach(btn => {
             btn.addEventListener("click", async function (event) {
-
-                // console.log("Show button with Script ID: " + btn.dataset.scriptId + " clicked!");
-
-                event.preventDefault();
+                event.preventDefault(); // prevent default button behaviour
 
                 // to prevent showing twice or duplicate showing
                 if (state !== btn.dataset.scriptId) {
-                    show(btn.dataset.scriptId);
+
+                    // clear whatever is existing on the UI
+                    document.getElementById("tableBody").textContent = "";
+
+                    // UI state is now based on the script id
+                    state = btn.dataset.scriptId;
+                    start = 0;
+
+                    // start polling
+                    startPolling();
                 }
             });
         });
@@ -126,7 +133,6 @@
 
         document.querySelectorAll(".startButton").forEach(btn => {
             btn.addEventListener("click", async function (event) {
-
                 event.preventDefault();
 
                 // scenario 1: script has never been started
@@ -142,25 +148,19 @@
                 // preventing duplicate showing
                 if (state !== btn.dataset.scriptId) {
 
-                    // call the show button
+                    // wait until script has fully started
                     if (result.status === 'ok') {
-                        show(btn.dataset.scriptId);
-                    }
-                } else {
-                    
-                    // the events related to the script are already shown
-                    // just call poll
-                    poll(); // initial poll
 
-                    // check if the script is running
-                    const response = await fetch("/worker-status/" + state);
-                    const result = await response.json();
+                        // clear whatever is existing on the UI
+                        document.getElementById("tableBody").textContent = "";
 
-                    if (result.status === 0) {
-                        clearInterval(intervalId);
-                        intervalId = setInterval(poll, 1000);
+                        // UI state is now based on the script id
+                        state = btn.dataset.scriptId;
+                        start = 0;
                     }
                 }
+                // start polling
+                startPolling();
             });
         });
 
