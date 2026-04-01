@@ -57,7 +57,7 @@ class ScriptManager:
         if (index < 0):
             raise ValueError("index cannot be less than 0")
     
-        if (index > len(self.events) - 1):
+        if (index > len(self.scripts) - 1):
             raise ValueError("index cannot be greater than the total number of scripts")
         
         if (self.running_processes.get(index) is None):
@@ -85,8 +85,3 @@ class ScriptManager:
                 return 0 # process returns alive and is also in the dictionary
             return -1 # process is not alive but still lives in the dictionary
         return 1 # process is not alive
-        
-        
-        
-        
-        

@@ -13,10 +13,16 @@
 
             {% for script in scripts %}
             <span>{{ script.name }}: {{ script.description }}</span>
-            <div class="buttons" style="display: flex;">
+            <div class="buttons" style="display: flex; gap: 20px;">
+
                 <button type="button" class="startButton" data-script-id="{{ loop.index - 1 }}">
                     Start Script {{ loop.index - 1}}
                 </button>
+
+                <button type="button" class="stopButton" data-script-id="{{ loop.index - 1 }}">
+                    Stop Script {{ loop.index - 1}}
+                </button>
+
                 <button type="button" class="showButton" data-script-id="{{ loop.index - 1 }}">
                     Show Script {{ loop.index - 1 }}
                 </button>
@@ -82,6 +88,9 @@
             start = result.end;
             renderEvents(result.events);
 
+            // the reason this is called here is because when the script has finished
+            // the only function that is running on interval is this function
+            // hence, this function also checks for script status in case it has finished
             // get the status of the script (running, error or stopped)
             const response2 = await fetch("/worker-status/" + state);
             const result2 = await response2.json();
@@ -92,6 +101,7 @@
                 intervalId = null;
             }
         }
+
 
 
         async function startPolling() {
@@ -110,8 +120,11 @@
         }
 
 
+
         document.querySelectorAll(".showButton").forEach(btn => {
             btn.addEventListener("click", async function (event) {
+                console.log("Show button clicked!");
+
                 event.preventDefault(); // prevent default button behaviour
 
                 // to prevent showing twice or duplicate showing
@@ -131,8 +144,11 @@
         });
 
 
+
         document.querySelectorAll(".startButton").forEach(btn => {
             btn.addEventListener("click", async function (event) {
+                console.log("Start button clicked!");
+
                 event.preventDefault();
 
                 // scenario 1: script has never been started
@@ -163,6 +179,23 @@
                 startPolling();
             });
         });
+
+
+
+        document.querySelectorAll(".stopButton").forEach(btn => {
+            btn.addEventListener("click", async function (event) {
+                console.log("Stop button clicked!");
+
+                event.preventDefault();
+
+                state = btn.dataset.scriptId;
+
+                // stop the worker
+                fetch("/stop-worker/" + state, { method: "POST", });
+                // const result = await response.json();
+            });
+        });
+
 
 
         document.getElementById("clearButton").addEventListener("click", async function (event) {
