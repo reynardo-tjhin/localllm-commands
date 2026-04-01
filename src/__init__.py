@@ -35,8 +35,10 @@ def create_app() -> Flask:
             print("Starting a worker")
             script_manager.start_script(script_id)
             
-            # return a None response
-            return Response(None)
+            return jsonify({
+                "status": "ok",
+                "message": "script started",
+            }), 200
     
     # end worker: stop a process to end the script
     @app.route("/stop-worker/<int:script_id>", methods=["POST"])

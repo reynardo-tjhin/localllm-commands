@@ -45,6 +45,8 @@ class ScriptManager:
         try:
             new_process.start()
             self.running_processes[index] = new_process
+            
+            print("new process added to running processes")
         except Exception:
             raise Exception("Issue with starting a process")
                 

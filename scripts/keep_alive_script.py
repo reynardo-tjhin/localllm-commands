@@ -2,13 +2,15 @@ from time import sleep
 from src.logger import Logger
 
 NAME="Keep Alive Script"
-DESCRIPTION="test 1"
+DESCRIPTION="Sending Keep Alive events"
 
 def execute(index: int):
     
-    logger = Logger()
+    logger = Logger(str(index))
     
     # sending keep alive
-    while True:
+    i = 0
+    while i < 10:
         logger.log("I'm alive.")
         sleep(2)
+        i += 1

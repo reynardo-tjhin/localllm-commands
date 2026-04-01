@@ -8,26 +8,37 @@
 </head>
 
 <body>
-    <div class="content" style="display: flex; margin: 100px;">
-        <div class="buttons" style="display: flex; flex-direction: column; padding: 30px;">
+    <div class="content" style="display: flex; margin: 50px; margin-top: 100px;">
+        <div class="buttons" style="display: flex; flex-direction: column; padding: 10px; width: 400px;">
 
             {% for script in scripts %}
-            <button type="button" class="showButton" data-script-id="{{ loop.index - 1 }}">
-                Show Script {{ loop.index - 1 }}
-            </button>
+            <span>{{ script.name }}: {{ script.description }}</span>
+            <div class="buttons" style="display: flex;">
+                <button type="button" class="startButton" data-script-id="{{ loop.index - 1 }}">
+                    Start Script {{ loop.index - 1}}
+                </button>
+                <button type="button" class="showButton" data-script-id="{{ loop.index - 1 }}">
+                    Show Script {{ loop.index - 1 }}
+                </button>
+            </div>
+            <hr>
             {% endfor %}
 
             <button type="button" id="clearButton">Clear</button>
         </div>
 
-        <div id="table" class="table">
-            <table>
-                <thead>
-                    <th style="width: 300px; text-align: left;">Timestamp</th>
-                    <th style="width: 600px; text-align: left;">Event</th>
-                </thead>
-                <tbody id="tableBody"></tbody>
-            </table>
+        <div id="table" class="table" style="text-align: left;">
+            <div class="scrollable">
+                <table style="display: block; height: 500px; overflow-y: scroll;">
+                    <thead>
+                        <tr>
+                            <th style="width: 150px;">Timestamp</th>
+                            <th style="width: 350px;">Event</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
         </div>
     </div>
 
@@ -48,9 +59,9 @@
 
                 tr.appendChild(td1);
                 tr.appendChild(td2);
-                fragment.appendChild(tr);
+                fragment.prepend(tr);
             });
-            document.getElementById("tableBody").appendChild(fragment);
+            document.getElementById("tableBody").prepend(fragment);
         }
 
 
@@ -68,6 +79,33 @@
 
             start = result.end;
             renderEvents(result.events);
+
+            const response2 = await fetch("/worker-status/" + state);
+            const result2 = await response2.json();
+
+            if (result2.status !== 0) {
+                clearInterval(intervalId);
+                intervalId = null;
+            }
+        }
+
+
+        async function show(scriptId) {
+
+            document.getElementById("tableBody").textContent = "";
+            state = scriptId;
+            start = 0;
+
+            poll(); // initial poll
+
+            // check if the script is running
+            const response = await fetch("/worker-status/" + state);
+            const result = await response.json();
+
+            if (result.status === 0) {
+                clearInterval(intervalId);
+                intervalId = setInterval(poll, 1000);
+            }
         }
 
 
@@ -77,17 +115,47 @@
                 // console.log("Show button with Script ID: " + btn.dataset.scriptId + " clicked!");
 
                 event.preventDefault();
-                if (state !== btn.dataset.scriptId) {
-                    // console.log("change state to " + btn.dataset.scriptId + "?start=" + start + "'");
-                    document.getElementById("tableBody").textContent = "";
-                    state = btn.dataset.scriptId;
-                    start = 0;
 
+                // to prevent showing twice or duplicate showing
+                if (state !== btn.dataset.scriptId) {
+                    show(btn.dataset.scriptId);
+                }
+            });
+        });
+
+
+        document.querySelectorAll(".startButton").forEach(btn => {
+            btn.addEventListener("click", async function (event) {
+
+                event.preventDefault();
+
+                // scenario 1: script has never been started
+                // scenario 2: script was started and has finished
+                // scenario 3: script is ongoing
+                state = btn.dataset.scriptId;
+
+                // start the worker
+                const response = await fetch("/start-worker/" + state, { method: "POST", });
+                const result = await response.json();
+
+                // to prevent showing the same events twice
+                // preventing duplicate showing
+                if (state !== btn.dataset.scriptId) {
+
+                    // call the show button
+                    if (result.status === 'ok') {
+                        show(btn.dataset.scriptId);
+                    }
+                } else {
+                    
+                    // the events related to the script are already shown
+                    // just call poll
                     poll(); // initial poll
 
                     // check if the script is running
                     const response = await fetch("/worker-status/" + state);
                     const result = await response.json();
+
                     if (result.status === 0) {
                         clearInterval(intervalId);
                         intervalId = setInterval(poll, 1000);
@@ -105,7 +173,7 @@
                 document.getElementById("tableBody").textContent = "";
                 state = -1;
                 start = 0;
-                
+
                 clearInterval(intervalId);
                 intervalId = null;
             }

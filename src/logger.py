@@ -17,7 +17,7 @@ class Logger:
             decode_responses=True,
             password=os.getenv('REDIS_PASSWORD'),
         )
-        self.key = key
+        self.key = "script:" + key
         
     def log(self, message: str) -> None:
         """
