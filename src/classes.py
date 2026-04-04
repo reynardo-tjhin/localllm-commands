@@ -6,6 +6,7 @@ from multiprocessing import Process
 from typing import Callable, Dict
 from redis import Redis
 from datetime import datetime
+from .custom_exceptions import *
 
 @dataclass
 class Script:
@@ -105,10 +106,10 @@ class ScriptManager:
         :param script: the Script object to be added
         """
         if script is None:
-            raise TypeError("script cannot be None")
+            raise TypeError("Script cannot be None")
     
         if script.script_id in self.scripts.keys():
-            raise ValueError("Script already added")
+            raise DuplicateScriptError()
         
         self.scripts[script.script_id] = script
             
@@ -123,19 +124,19 @@ class ScriptManager:
             raise TypeError("script_id cannot be None")
     
         if (len(script_id) != 32):
-            raise ValueError("script_id length is not 32, indicating not a hex representation of a UUID4 object")
+            raise BadScriptIDLength(script_id)
     
         if (not bool(re.match("^[0-9a-f]+$", script_id))):
-            raise ValueError("script_id can only contain characters 0-9 and a-f")
+            raise BadScriptIDFormat(script_id)
         
         if (self.scripts.get(script_id) is None):
-            raise KeyError(f"Script object does not exist based on the given script_id:{script_id})")
+            raise ScriptNotFoundError(script_id)
         
         if (len(self.running_processes) >= self.max_simul_runs):
-            raise RuntimeError("Number of scripts running has reached the maximum. No more scripts can be run. Call `refresh` to update the Script Manager's running processes.")
+            raise ScriptManagerLimitExceededError(self.max_simul_runs)
         
         # refresh the internals
-        self._refresh()
+        self.__refresh()
         
         # get the script object
         script = self.scripts.get(script_id)
@@ -150,13 +151,11 @@ class ScriptManager:
         # then the subprocess (which is the one created here) will continue
         # it might be an orphan process if not handled properly
         new_process.daemon = False
-        try:
-            new_process.start()
-            self.running_processes[script_id] = new_process
-            print(f"[INFO] Script ID '{script_id}' has started")
-            
-        except Exception:
-            raise Exception("Issue with starting a process")
+
+        # start the process
+        new_process.start()
+        self.running_processes[script_id] = new_process
+        print(f"[INFO] Script ID '{script_id}' has started")
     
         return True
                 
@@ -171,30 +170,27 @@ class ScriptManager:
             raise TypeError("script_id cannot be None")
     
         if (len(script_id) != 32):
-            raise ValueError("script_id length is not 32, indicating not a hex representation of a UUID4 object")
+            raise BadScriptIDLength(script_id)
     
         if (not bool(re.match("^[0-9a-f]+$", script_id))):
-            raise ValueError("script_id can only contain characters 0-9 and a-f")
+            raise BadScriptIDFormat(script_id)
         
         if (self.scripts.get(script_id) is None):
-            raise KeyError(f"Script object does not exist based on the given script_id:{script_id}")
+            raise ScriptNotFoundError(script_id)
         
         if (self.running_processes.get(script_id) is None):
-            raise KeyError(f"Script with script_id:{script_id} is not running")
+            raise ScriptNotInRunningProcessesError(script_id)
         
         if (self.running_processes.get(script_id).is_alive() is False):
-            raise ProcessLookupError(f"Script's Process with script_id:{script_id} is not alive")
+            raise ScriptProcessNotAliveError(script_id)
 
         # refresh the internals
-        self._refresh()
+        self.__refresh()
     
-        try:
-            running_process = self.running_processes.get(script_id)
-            running_process.terminate() # graceful shutdown process
-            del self.running_processes[script_id]
-            
-        except Exception:
-            raise Exception(f"Script's Process with script_id:{script_id} cannot be terminated gracefully")
+        running_process = self.running_processes.get(script_id)
+        running_process.terminate() # graceful shutdown process
+        del self.running_processes[script_id]
+        print(f"[INFO] Script ID '{script_id}' has been terminated successfully")
         
         return True
         
@@ -214,15 +210,15 @@ class ScriptManager:
             raise TypeError("script_id cannot be None")
     
         if (len(script_id) != 32):
-            raise ValueError("script_id length is not 32, indicating not a hex representation of a UUID4 object")
+            raise BadScriptIDLength(script_id)
     
         if (not bool(re.match("^[0-9a-f]+$", script_id))):
-            raise ValueError("script_id can only contain characters 0-9 and a-f")
+            raise BadScriptIDFormat(script_id)
         
         if (self.scripts.get(script_id) is None):
-            raise KeyError(f"Script object does not exist based on the given script_id:{script_id}")
+            raise ScriptNotFoundError(script_id)
         
-        self._refresh()
+        self.__refresh()
         
         # get the running process
         running_process = self.running_processes.get(script_id)
@@ -242,7 +238,7 @@ class ScriptManager:
         # process is not alive
         return 1
     
-    def _refresh(self) -> None:
+    def __refresh(self) -> None:
         """Refreshes the internals of the Script Manager object.
         Removes any processes that are not running from the :attr:`running_processes`.
         """
@@ -280,7 +276,7 @@ class Logger:
         
         # check if the redis server is up and running
         if (self.conn.info() is None):
-            raise ConnectionError("redis server is not up")
+            raise RedisConnectionError()
         
         # the logger's key
         self.key = "script:" + key
@@ -288,6 +284,10 @@ class Logger:
     def log(self, message: str) -> None:
         """
         Log the message to redis database
+        
+        :param message: the message that is send to the user
         """
         message = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "," + message
         self.conn.rpush(self.key, message)
+        
+        return None
