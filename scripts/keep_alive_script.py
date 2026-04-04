@@ -1,12 +1,13 @@
 from time import sleep
-from src.logger import Logger
+from src.classes import Logger
 
-NAME="Keep Alive Script"
-DESCRIPTION="Sending Keep Alive events"
+ID='0012773401804e1aa1dbd57077b51582'
+NAME='Keep Alive Script'
+DESCRIPTION='Sending Keep Alive events'
 
-def execute(index: int):
+def execute():
     
-    logger = Logger(str(index))
+    logger = Logger(ID)
     
     # sending keep alive
     i = 0

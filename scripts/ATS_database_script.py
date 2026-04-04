@@ -21,8 +21,9 @@ import json
 from io import BytesIO
 from pdf2image import convert_from_path
 
-NAME="Create ATS Database"
-DESCRIPTION="Create database by parsing PDF to IMAGE and extract information using AI"
+ID='39adbefa9e984e81a984f7034088ff68'
+NAME='Create ATS Database'
+DESCRIPTION='Create database by parsing PDF to IMAGE and extract information using AI'
 
 def execute():
     

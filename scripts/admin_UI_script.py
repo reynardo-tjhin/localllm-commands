@@ -3,8 +3,10 @@ import json
 
 from playwright.sync_api import sync_playwright, Page
 
-NAME="Generate Admin UI Script"
-DESCRIPTION="Create Admin UI using different local AI models"
+# generate the ID by calling `uuid.uuid4().hex`
+ID='d38134b0435f4d2392c953f6160e9e64'
+NAME='Generate Admin UI Script'
+DESCRIPTION='Create Admin UI using different local AI models'
 
 # run llama-swap in server
 # ./llama-swap-linux-amd64 --config config.yaml --listen 0.0.0.0:8080

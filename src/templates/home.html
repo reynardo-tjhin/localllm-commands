@@ -15,16 +15,16 @@
             <span>{{ script.name }}: {{ script.description }}</span>
             <div class="buttons" style="display: flex; gap: 20px;">
 
-                <button type="button" class="startButton" data-script-id="{{ loop.index - 1 }}">
-                    Start Script {{ loop.index - 1}}
+                <button type="button" class="startButton" data-script-id="{{ script.id }}">
+                    Start Script
                 </button>
 
-                <button type="button" class="stopButton" data-script-id="{{ loop.index - 1 }}">
-                    Stop Script {{ loop.index - 1}}
+                <button type="button" class="stopButton" data-script-id="{{ script.id }}">
+                    Stop Script
                 </button>
 
-                <button type="button" class="showButton" data-script-id="{{ loop.index - 1 }}">
-                    Show Script {{ loop.index - 1 }}
+                <button type="button" class="showButton" data-script-id="{{ script.id }}">
+                    Show Script
                 </button>
             </div>
             <hr>
@@ -73,13 +73,13 @@
 
 
         let intervalId = null;
-        let state = -1;
+        let state = "-1";
         let start = 0;
         async function poll() {
             console.log("polling '/poll/" + state + "?start=" + start + "'");
 
             // no need to poll if UI state is empty
-            if (state === -1) return;
+            if (state === "-1") return;
 
             // get the events based on the script id
             const response = await fetch("/poll/" + state + "?start=" + start);
@@ -202,9 +202,9 @@
             console.log("Clear button clicked!");
 
             event.preventDefault();
-            if (state !== -1) {
+            if (state !== "-1") {
                 document.getElementById("tableBody").textContent = "";
-                state = -1;
+                state = "-1";
                 start = 0;
 
                 clearInterval(intervalId);

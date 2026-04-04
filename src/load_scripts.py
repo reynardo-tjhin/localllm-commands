@@ -6,7 +6,7 @@ import pathlib
 import sys
 import pkgutil
 
-from .models import Script, ScriptManager
+from .classes import Script, ScriptManager
 
 def scripts_init() -> ScriptManager:
     
@@ -35,6 +35,7 @@ def scripts_init() -> ScriptManager:
         # each module needs to have NAME, DESCRIPTION and execute function
         # create event
         new_script = Script(
+            script_id=mod.ID,
             name=mod.NAME,
             description=mod.DESCRIPTION,
             execute_fn=mod.execute,
