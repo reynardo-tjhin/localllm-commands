@@ -25,6 +25,12 @@ class DuplicateScriptError(Exception):
         super().__init__("Cannot have duplicate scripts")
 
 
+class ScriptAlreadyRan(Exception):
+    def __init__(self, script_id: str):
+        self.script_id = script_id
+        super().__init__(f"Script '{script_id}' is currently running. Refresh the events if you are confident it has finished running.")
+
+
 class ScriptManagerLimitExceededError(Exception):
     def __init__(self, max_simul_no: int):
         self.max_simul_no = max_simul_no

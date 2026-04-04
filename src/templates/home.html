@@ -5,45 +5,187 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scripts Progress</title>
+
+    <style>
+        body {
+            background: linear-gradient(to bottom, #219ccd, #97dde8);
+            margin: 0px;
+            height: 100%;
+        }
+
+        .content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            gap: 20px;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            width: 400px;
+            height: 545px;
+            background-color: #0148B2;
+            border-top-left-radius: 5px;
+            border-top-right-radius: 5px;
+        }
+
+        .controls-topbar {
+            width: 380px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+        }
+
+        .controls-topbar span {
+            font-family: 'Trebuchet MS';
+            color: white;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+
+        .controls-content {
+            background-color: #EBEBEE;
+            width: 370px;
+            height: 520px;
+            margin: 0px 5px 5px 5px;
+            overflow-y: scroll;
+            padding: 10px;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 20px;
+        }
+
+        .message {
+            display: flex;
+            width: 750px;
+            height: 40px;
+            align-items: center;
+            color: white;
+            background-color: black;
+            margin-bottom: 5px;
+            border-radius: 5px;
+            font-family: Tahoma;
+        }
+
+        .message span {
+            padding: 0px 5px 0px 5px;
+        }
+
+        .window {
+            display: block;
+            width: 750px;
+            height: 500px;
+            background-color: #0148B2;
+            border-top-left-radius: 5px;
+            border-top-right-radius: 5px;
+        }
+
+        .window-topbar {
+            width: 750px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .window-topbar span {
+            font-family: 'Trebuchet MS';
+            color: white;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+
+        .window-content {
+            background-color: #EBEBEE;
+            width: 740px;
+            margin: 0px 5px 0px 5px;
+            font-family: Tahoma;
+            font-weight: normal;
+        }
+
+        .window .table-head {
+            display: block;
+            width: 740px;
+            height: 30px;
+            padding: 5px 5px 0px 5px;
+        }
+
+        .window .table-body {
+            display: block;
+            width: 740px;
+            height: 435px;
+            overflow-y: scroll;
+            padding: 0px 5px 5px 5px;
+        }
+    </style>
 </head>
 
 <body>
-    <div class="content" style="display: flex; margin: 50px; margin-top: 100px;">
-        <div class="buttons" style="display: flex; flex-direction: column; padding: 10px; width: 400px;">
-
-            {% for script in scripts %}
-            <span>{{ script.name }}: {{ script.description }}</span>
-            <div class="buttons" style="display: flex; gap: 20px;">
-
-                <button type="button" class="startButton" data-script-id="{{ script.id }}">
-                    Start Script
-                </button>
-
-                <button type="button" class="stopButton" data-script-id="{{ script.id }}">
-                    Stop Script
-                </button>
-
-                <button type="button" class="showButton" data-script-id="{{ script.id }}">
-                    Show Script
-                </button>
+    <div class="content">
+        <div class="controls">
+            <div class="controls-topbar">
+                <span>Controls</span>
             </div>
-            <hr>
-            {% endfor %}
 
-            <button type="button" id="clearButton">Clear</button>
+            <div class="controls-content">
+                {% for script in scripts %}
+                <div class="control">
+                    <span>{{ script.name }}: {{ script.description }}</span>
+                    <div class="buttons">
+
+                        <button type="button" class="startButton" data-script-id="{{ script.id }}"
+                            data-script-name="{{ script.name }}">
+                            Start Script
+                        </button>
+
+                        <button type="button" class="stopButton" data-script-id="{{ script.id }}"
+                            data-script-name="{{ script.name }}">
+                            Stop Script
+                        </button>
+
+                        <button type="button" class="showButton" data-script-id="{{ script.id }}"
+                            data-script-name="{{ script.name }}">
+                            Show Script
+                        </button>
+                    </div>
+                </div>
+                <hr>
+                {% endfor %}
+
+                <button type="button" id="clearButton">Clear</button>
+            </div>
+
         </div>
 
-        <div id="table" class="table" style="text-align: left;">
-            <div class="scrollable">
-                <table style="display: block; height: 500px; overflow-y: scroll;">
-                    <thead>
-                        <tr>
-                            <th style="width: 150px;">Timestamp</th>
-                            <th style="width: 350px;">Event</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableBody"></tbody>
-                </table>
+        <div class="logs" style="text-align: left;">
+            <div class="message">
+                <span id="message">Message: </span>
+            </div>
+
+            <!-- window that contains the table -->
+            <div class="window">
+                <div class="window-topbar">
+                    <span id="windowTitle">Running Script</span>
+                </div>
+
+                <div class="window-content">
+                    <table class="table-head">
+                        <thead>
+                            <tr>
+                                <th style="width: 200px;">Timestamp</th>
+                                <th style="width: 510px;">Event</th>
+                            </tr>
+                        </thead>
+                    </table>
+
+                    <table class="table-body">
+                        <tbody id="table-content"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -59,6 +201,7 @@
 
                 const td1 = document.createElement("td");
                 td1.textContent = timestamp;
+                td1.style = "width: 200px;"
 
                 const td2 = document.createElement("td");
                 td2.textContent = log;
@@ -67,7 +210,7 @@
                 tr.appendChild(td2);
                 fragment.prepend(tr);
             });
-            document.getElementById("tableBody").prepend(fragment);
+            document.getElementById("table-content").prepend(fragment);
         }
 
 
@@ -131,9 +274,10 @@
                 if (state !== btn.dataset.scriptId) {
 
                     // clear whatever is existing on the UI
-                    document.getElementById("tableBody").textContent = "";
+                    document.getElementById("table-content").textContent = "";
 
                     // UI state is now based on the script id
+                    document.getElementById("windowTitle").textContent = btn.dataset.scriptName;
                     state = btn.dataset.scriptId;
                     start = 0;
 
@@ -151,14 +295,15 @@
 
                 event.preventDefault();
 
-                // scenario 1: script has never been started
-                // scenario 2: script was started and has finished
-                // scenario 3: script is ongoing
-                state = btn.dataset.scriptId;
-
                 // start the worker
-                const response = await fetch("/start-worker/" + state, { method: "POST", });
+                const response = await fetch("/start-worker/" + btn.dataset.scriptId, { method: "POST", });
                 const result = await response.json();
+                if (!response.ok) {
+                    // show message
+                    // do nothing
+                    // UI remains unchanged
+                    document.getElementById("message").textContent = "Message: Error: " + result.message;
+                }
 
                 // to prevent showing the same events twice
                 // preventing duplicate showing
@@ -168,9 +313,13 @@
                     if (result.status === 'ok') {
 
                         // clear whatever is existing on the UI
-                        document.getElementById("tableBody").textContent = "";
+                        document.getElementById("table-content").textContent = "";
+
+                        // update message
+                        document.getElementById("message").textContent = "Message: " + result.message;
 
                         // UI state is now based on the script id
+                        document.getElementById("windowTitle").textContent = btn.dataset.scriptName;
                         state = btn.dataset.scriptId;
                         start = 0;
                     }
@@ -188,11 +337,35 @@
 
                 event.preventDefault();
 
-                state = btn.dataset.scriptId;
-
                 // stop the worker
-                fetch("/stop-worker/" + state, { method: "POST", });
-                // const result = await response.json();
+                const response = await fetch("/stop-worker/" + btn.dataset.scriptId, { method: "POST", });
+                const result = await response.json();
+                if (!response.ok) {
+                    // show message
+                    // do nothing
+                    // UI remains unchanged
+                    document.getElementById("message").textContent = "Message: Error: " + result.message;
+                }
+
+                // if stop button was clicked but the UI is showing something else
+                // we will still need to update the UI
+                if (state !== btn.dataset.scriptId) {
+
+                    // wait until script has fully started
+                    if (result.status === 'ok') {
+
+                        // clear whatever is existing on the UI
+                        document.getElementById("table-content").textContent = "";
+
+                        // update message
+                        document.getElementById("message").textContent = "Message: " + result.message;
+
+                        // UI state is now based on the script id
+                        document.getElementById("windowTitle").textContent = btn.dataset.scriptName;
+                        state = btn.dataset.scriptId;
+                        start = 0;
+                    }
+                }
             });
         });
 
@@ -203,7 +376,9 @@
 
             event.preventDefault();
             if (state !== "-1") {
-                document.getElementById("tableBody").textContent = "";
+                document.getElementById("table-content").textContent = "";
+                document.getElementById("windowTitle").textContent = "Running Script";
+                document.getElementById("message").textContent = "Message: ";
                 state = "-1";
                 start = 0;
 

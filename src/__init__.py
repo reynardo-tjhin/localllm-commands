@@ -70,6 +70,12 @@ def create_app() -> Flask:
                     "message": str(e),
                 }), 404 # script not found
                 
+            except custom_exceptions.ScriptAlreadyRan as e:
+                return jsonify({
+                    "status": "error",
+                    "message": str(e),
+                }), 409 # conflict with its current data, version or constraints
+                
             except custom_exceptions.ScriptManagerLimitExceededError as e:
                 return jsonify({
                     "status": "error",
@@ -78,7 +84,7 @@ def create_app() -> Flask:
             
             return jsonify({
                 "status": "ok",
-                "message": "script started",
+                "message": f"Script '{script_id}' started",
             }), 200
     
     

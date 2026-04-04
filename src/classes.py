@@ -132,6 +132,9 @@ class ScriptManager:
         if (self.scripts.get(script_id) is None):
             raise ScriptNotFoundError(script_id)
         
+        if (self.running_processes.get(script_id) is not None):
+            raise ScriptAlreadyRan(script_id)
+        
         if (len(self.running_processes) >= self.max_simul_runs):
             raise ScriptManagerLimitExceededError(self.max_simul_runs)
         
