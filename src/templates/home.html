@@ -32,7 +32,7 @@
         }
 
         .controls-topbar {
-            width: 380px;
+            width: 400px;
             height: 30px;
             display: flex;
             align-items: center;
@@ -48,15 +48,49 @@
         .controls-content {
             background-color: #EBEBEE;
             width: 370px;
-            height: 520px;
+            height: 490px;
             margin: 0px 5px 5px 5px;
-            overflow-y: scroll;
             padding: 10px;
+        }
+
+        .controls-buttons {
+            margin-bottom: 10px;
+            overflow-y: scroll;
+            height: 450px;
+        }
+
+        .control {
+            border: 1px dashed black;
+            border-radius: 5px;
+            margin: 5px;
+            width: 340px;
+            height: 90px;
+        }
+
+        .details {
+            height: 50px;
+            padding: 5px;
+        }
+
+        .details #scriptDescription {
+            font-size: small;
         }
 
         .buttons {
             display: flex;
             gap: 20px;
+            justify-content: center;
+        }
+
+        .clear-button {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .clear-button #clearButton {
+            width: 350px;
+            height: 30px;
         }
 
         .message {
@@ -132,33 +166,37 @@
             </div>
 
             <div class="controls-content">
-                {% for script in scripts %}
-                <div class="control">
-                    <span>{{ script.name }}: {{ script.description }}</span>
-                    <div class="buttons">
+                <div class="controls-buttons">
+                    {% for script in scripts %}
+                    <div class="control">
+                        <div class="details">
+                            <div id="scriptTitle">{{ script.name }}</div>
+                            <div id="scriptDescription">{{ script.description }}</div>
+                        </div>
+                        <div class="buttons">
 
-                        <button type="button" class="startButton" data-script-id="{{ script.id }}"
-                            data-script-name="{{ script.name }}">
-                            Start Script
-                        </button>
+                            <button type="button" class="startButton" data-script-id="{{ script.id }}"
+                                data-script-name="{{ script.name }}">
+                                Start Script
+                            </button>
 
-                        <button type="button" class="stopButton" data-script-id="{{ script.id }}"
-                            data-script-name="{{ script.name }}">
-                            Stop Script
-                        </button>
+                            <button type="button" class="stopButton" data-script-id="{{ script.id }}"
+                                data-script-name="{{ script.name }}">
+                                Stop Script
+                            </button>
 
-                        <button type="button" class="showButton" data-script-id="{{ script.id }}"
-                            data-script-name="{{ script.name }}">
-                            Show Script
-                        </button>
+                            <button type="button" class="showButton" data-script-id="{{ script.id }}"
+                                data-script-name="{{ script.name }}">
+                                Show Script
+                            </button>
+                        </div>
                     </div>
+                    {% endfor %}
                 </div>
-                <hr>
-                {% endfor %}
-
-                <button type="button" id="clearButton">Clear</button>
+                <div class="clear-button">
+                    <button type="button" id="clearButton">Clear</button>
+                </div>
             </div>
-
         </div>
 
         <div class="logs" style="text-align: left;">
@@ -295,6 +333,8 @@
 
                 event.preventDefault();
 
+                btn.disabled = true;
+
                 // start the worker
                 const response = await fetch("/start-worker/" + btn.dataset.scriptId, { method: "POST", });
                 const result = await response.json();
@@ -324,6 +364,9 @@
                         start = 0;
                     }
                 }
+                // reenable button
+                btn.disabled = false;
+
                 // start polling
                 startPolling();
             });
@@ -375,16 +418,14 @@
             console.log("Clear button clicked!");
 
             event.preventDefault();
-            if (state !== "-1") {
-                document.getElementById("table-content").textContent = "";
-                document.getElementById("windowTitle").textContent = "Running Script";
-                document.getElementById("message").textContent = "Message: ";
-                state = "-1";
-                start = 0;
+            document.getElementById("table-content").textContent = "";
+            document.getElementById("windowTitle").textContent = "Running Script";
+            document.getElementById("message").textContent = "Message: ";
+            state = "-1";
+            start = 0;
 
-                clearInterval(intervalId);
-                intervalId = null;
-            }
+            clearInterval(intervalId);
+            intervalId = null;
         });
     </script>
 </body>
