@@ -72,7 +72,7 @@
             padding: 5px;
         }
 
-        .details #scriptDescription {
+        .details .scriptDescription {
             font-size: small;
         }
 
@@ -170,8 +170,11 @@
                     {% for script in scripts %}
                     <div class="control">
                         <div class="details">
-                            <div id="scriptTitle">{{ script.name }}</div>
-                            <div id="scriptDescription">{{ script.description }}</div>
+                            <div class="scriptTitle">
+                                <span class="scriptIndicator" data-script-id="{{ script.id }}"></span>
+                                {{ script.name }}
+                            </div>
+                            <div class="scriptDescription">{{ script.description }}</div>
                         </div>
                         <div class="buttons">
 
@@ -229,11 +232,29 @@
     </div>
 
     <script>
+        function pollScriptIndicator() {
+            document.querySelectorAll(".scriptIndicator").forEach(async function (span) {
+                const response = await fetch("/worker-status/" + span.dataset.scriptId);
+                if (!response.ok) { // error with the script ID
+                    span.textContent = "🔴";
+                }
+                
+                const result = await response.json();
+                if (result.status === 0) {
+                    span.textContent = "🟢"; // script is running
+                } else {
+                    span.textContent = "🟡"; // script has stopped
+                }
+            });
+        }
+        setInterval(pollScriptIndicator, 500); // keep refreshing every 500ms
+
+
         function renderEvents(events) {
             const fragment = document.createDocumentFragment(); // batch DOM writes
 
             events.forEach((event, _) => {
-                const [timestamp, log] = event.split(",");
+                const [timestamp, log] = event.split("|");
 
                 const tr = document.createElement("tr");
 
@@ -276,7 +297,7 @@
             const response2 = await fetch("/worker-status/" + state);
             const result2 = await response2.json();
 
-            // stop polling if script is stopped or in error
+            // stop polling if script has stopped or in error
             if (result2.status !== 0) {
                 clearInterval(intervalId);
                 intervalId = null;
@@ -388,26 +409,8 @@
                     // do nothing
                     // UI remains unchanged
                     document.getElementById("message").textContent = "Message: Error: " + result.message;
-                }
-
-                // if stop button was clicked but the UI is showing something else
-                // we will still need to update the UI
-                if (state !== btn.dataset.scriptId) {
-
-                    // wait until script has fully started
-                    if (result.status === 'ok') {
-
-                        // clear whatever is existing on the UI
-                        document.getElementById("table-content").textContent = "";
-
-                        // update message
-                        document.getElementById("message").textContent = "Message: " + result.message;
-
-                        // UI state is now based on the script id
-                        document.getElementById("windowTitle").textContent = btn.dataset.scriptName;
-                        state = btn.dataset.scriptId;
-                        start = 0;
-                    }
+                } else {
+                    document.getElementById("message").textContent = "Message: " + result.message;
                 }
             });
         });

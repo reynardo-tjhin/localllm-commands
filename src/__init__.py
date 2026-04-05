@@ -26,13 +26,14 @@ def create_app() -> Flask:
         """The mainpage of the web. Gets all the information of
         all the scripts and send them to the frontend.
         """
-        scripts = [
-            {
+        scripts = []
+        for script_id in script_manager.scripts.keys():            
+            # add to the scripts list as a dictionary
+            scripts.append({
                 "id": script_id,
                 "name": script_manager.scripts.get(script_id).name,
                 "description": script_manager.scripts.get(script_id).description,
-            } for script_id in script_manager.scripts.keys()
-        ]
+            })
         return render_template("home.html", scripts=scripts)
     
     

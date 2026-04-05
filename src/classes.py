@@ -290,7 +290,7 @@ class Logger:
         
         :param message: the message that is send to the user
         """
-        message = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "," + message
+        message = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "|" + message
         self.conn.rpush(self.key, message)
         
         return None

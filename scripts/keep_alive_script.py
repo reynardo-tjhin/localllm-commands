@@ -10,8 +10,6 @@ def execute():
     logger = Logger(ID)
     
     # sending keep alive
-    i = 0
-    while i < 10:
+    while True:
         logger.log("I'm alive.")
         sleep(2)
-        i += 1
