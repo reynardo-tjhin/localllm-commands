@@ -10,6 +10,7 @@ dependencies = [
     "flask>=3.1.2",
     "pdf2image>=1.17.0",
     "playwright>=1.55.0",
+    "pytest>=9.0.2",
     "redis[hiredis]>=7.4.0",
     "requests>=2.32.5",
 ]

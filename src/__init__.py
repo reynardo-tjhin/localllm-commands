@@ -1,16 +1,27 @@
+import pathlib
+
 from flask import Flask, Response, render_template, jsonify, request
 from . import db, config, load_scripts, custom_exceptions
 
-def create_app() -> Flask:
+def create_app(module_parent_path: pathlib.Path = None, module_name: str = None) -> Flask:
     # load config - the environments (mainly Redis)
     config.load_config()
 
-    # :func:`scripts_init` goes to the `scripts` directory
+    if module_parent_path is None:
+        module_parent_path = pathlib.Path(__file__).parent.parent
+    
+    if module_name is None:
+        module_name = "scripts"
+    
+    # :func:`scripts_init` goes to the given directory
     # and import all the `.py` files as modules
     # then create Script object from the ID, Name, Description
     # and the execute function
     # returns the script manager object
-    script_manager = load_scripts.scripts_init()
+    script_manager = load_scripts.init_script_manager(
+        module_parent_path=module_parent_path,
+        module_name=module_name
+    )
     
     # create the app object
     app = Flask(__name__)

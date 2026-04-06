@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 from src.classes import Logger
 
 ID='c2881c0619f84a96811e52f53c6b9eb9'
-NAME='Simple Script'
+NAME='Simple Scraping Script'
 DESCRIPTION='Simple Script that scrapes the quotes website'
 
 def execute():

@@ -8,28 +8,36 @@ import pkgutil
 
 from .classes import Script, ScriptManager
 
-def scripts_init() -> ScriptManager:
+def init_script_manager(
+        module_parent_path: pathlib.Path,
+        module_name: str,
+        max_simul_runs: int = 4,
+    ) -> ScriptManager:
+    """Initialise script manager. Imports the 'module_name' from the 'module_parent_path'.
+    The modules must have the Script's metadata like name, description, ID and execute
+    function.
     
-    # get the path of the repository
-    path = pathlib.Path(__file__).parent.parent
-    
+    :param module_parent_path: the parent path of where the scripts are located
+    :param module_name: the name of the directory that contains all the scripts
+    :param max_simul_runs: the parameter for how many scripts that can run at a time
+    """
     # add the path to sys.path
-    sys.path.append(str(path))
+    sys.path.append(str(module_parent_path))
     
     # import the module by name
-    module = importlib.import_module("scripts")
+    module = importlib.import_module(module_name)
     
     # pop off the path
     sys.path.pop()
     
     # create new event manager
-    script_manager = ScriptManager()
+    script_manager = ScriptManager(max_simul_runs)
     
     # create events
     for _, name, _ in pkgutil.iter_modules(module.__path__):
         
         # import the module
-        mod = f"scripts.{name}"
+        mod = f"{module_name}.{name}"
         mod = importlib.import_module(mod)
         
         # each module needs to have NAME, DESCRIPTION and execute function
