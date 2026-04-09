@@ -18,5 +18,7 @@ def execute():
         f.write("Cras eu elit in dolor blandit vestibulum a non neque. Maecenas feugiat ut dui hendrerit dignissim. Phasellus pretium mauris non mi euismod, nec mollis eros malesuada. Proin fringilla velit turpis, in laoreet enim hendrerit sit amet. Quisque convallis vestibulum enim vel sollicitudin. Morbi tempor nisi venenatis sem maximus, nec placerat leo consequat. Aliquam at viverra neque. Aliquam dapibus ipsum eget dui dictum molestie. Sed luctus nunc ac vulputate dignissim. Praesent sodales turpis dolor, nec rutrum felis pulvinar non. Etiam convallis purus vel porttitor venenatis. Vivamus egestas velit at pharetra sollicitudin. Curabitur in purus erat. Vestibulum tincidunt mi id dolor tempus, nec rutrum libero vestibulum.\n\n")
 
         f.write("Vivamus pharetra blandit aliquam. Suspendisse eu pharetra arcu, vel hendrerit ligula. Etiam eu ultrices felis. Proin in ligula pellentesque, tempus dui at, faucibus sem. Suspendisse potenti. Donec pharetra viverra nisi a laoreet. Proin tempus, lorem eu efficitur efficitur, elit orci tincidunt erat, sit amet sodales nulla ligula vel ipsum. Etiam condimentum sodales scelerisque. Aliquam dignissim leo sit amet bibendum sollicitudin. Etiam posuere finibus nulla in facilisis. In sit amet euismod turpis. Praesent volutpat metus sem, sed venenatis mauris mattis eu. Nam eleifend vulputate lectus, tempor faucibus tellus lobortis aliquam. Mauris sagittis rhoncus neque et consectetur.")
+        
+    time.sleep(0.5)
     
     return None

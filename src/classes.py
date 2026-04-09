@@ -187,8 +187,8 @@ class ScriptManager:
         if (self.running_processes.get(script_id) is None):
             raise ScriptNotInRunningProcessesError(script_id)
         
-        # if (self.running_processes.get(script_id).is_alive() is False):
-        #     raise ScriptProcessNotAliveError(script_id)
+        if (self.running_processes.get(script_id).is_alive() is False):
+            raise ScriptProcessNotAliveError(script_id)
 
         # refresh the internals
         self.__refresh()
@@ -198,9 +198,6 @@ class ScriptManager:
             running_process.terminate() # graceful shutdown process
             del self.running_processes[script_id]
             print(f"[INFO] Script ID '{script_id}' has been terminated successfully")
-        
-        else:
-            print(f"[INFO] Script ID '{script_id}' has been removed when calling of __refresh()")
         
         return running_process
         

@@ -122,10 +122,10 @@ def test_start_end_two_scripts(script_manager):
     
     # start both script
     script_1_process = script_manager.start_script(script_id_1)
-    time.sleep(0.5) # break to let the process starts fully
+    time.sleep(0.2) # break to let the process starts fully
 
     script_2_process = script_manager.start_script(script_id_2)
-    time.sleep(0.5) # break to let the process starts fully
+    time.sleep(0.2) # break to let the process starts fully
     
     # check the scripts processes
     assert script_1_process is not None
@@ -133,14 +133,15 @@ def test_start_end_two_scripts(script_manager):
     assert script_1_process.is_alive()
     
     # script 2 is a very fast script
-    assert script_2_process.is_alive() is False
+    assert script_2_process.is_alive() is True
     
+    time.sleep(0.5) # wait for script 2 to finish
+    
+    # script_manager needs to perform another function to update its internals
+    assert script_2_process.is_alive() is False
     assert len(script_manager.running_processes) == 2
     assert script_1_process is script_manager.running_processes.get(script_id_1)
     assert script_2_process is script_manager.running_processes.get(script_id_2)
-    
-    # wait for script 2 to finish
-    time.sleep(0.5)
     
     # remains the same because no calls to update the internals of the script manager
     assert len(script_manager.running_processes) == 2
@@ -148,10 +149,143 @@ def test_start_end_two_scripts(script_manager):
     # stop script 1
     # performs __refresh() that updates the internals of script_manager
     script_manager.end_script(script_id_1)
-    
-    # wait for script 2 to be terminated
-    time.sleep(0.5)
+    time.sleep(0.2) # wait for script 1 to be terminated
 
     # check the script manager
     assert len(script_manager.running_processes) == 0
     assert script_1_process.is_alive() is False
+    
+def test_start_error_script(script_manager):
+    """Testing start script that raises Exceptions"""
+    
+    # scripts
+    script_id_1 = "0e6a19cc157941e0b56b6a272c6eec71"
+    
+    # start script
+    script_manager.start_script(script_id_1)
+    time.sleep(0.2) # break to let the process starts fully
+    
+    # None script_id
+    with pytest.raises(TypeError):
+        script_manager.start_script(None)
+    
+    # incorrect script_id
+    with pytest.raises(custom_exceptions.BadScriptIDLength):
+        script_manager.start_script("1234")
+    
+    # bad script_id
+    with pytest.raises(custom_exceptions.BadScriptIDFormat):
+        script_manager.start_script("0z6a19cc157941e0b56b6a272c6eec71")
+        
+    # script not found
+    with pytest.raises(custom_exceptions.ScriptNotFoundError):
+        script_manager.start_script("0e6a19cc157941e0b56b6a272c6eec72")
+        
+    # duplicate script_id
+    with pytest.raises(custom_exceptions.ScriptAlreadyRan):
+        script_manager.start_script(script_id_1)
+        
+    # limit reached
+    script_id_2 = "c66d9421757f4051aa2f99b5305cb037"
+    script_id_3 = "6b84f067aaf34649a5a9a161395b504c"
+    script_manager.start_script(script_id_2)
+    with pytest.raises(custom_exceptions.ScriptManagerLimitExceededError):
+        script_manager.start_script(script_id_3)
+    
+    time.sleep(0.7)
+    
+    # end the keep alive script
+    script_manager.end_script(script_id_1)
+    time.sleep(0.2) # wait for script 1 to be terminated
+    
+def test_end_error_script(script_manager):
+    """Testing end script that raises exceptions"""
+    
+    # scripts
+    script_id_1 = "0e6a19cc157941e0b56b6a272c6eec71"
+    
+    # start script
+    script_manager.start_script(script_id_1)
+    time.sleep(0.2) # break to let the process starts fully
+    
+    # None script_id
+    with pytest.raises(TypeError):
+        script_manager.end_script(None)
+    
+    # incorrect script_id
+    with pytest.raises(custom_exceptions.BadScriptIDLength):
+        script_manager.end_script("1234")
+    
+    # bad script_id
+    with pytest.raises(custom_exceptions.BadScriptIDFormat):
+        script_manager.end_script("0z6a19cc157941e0b56b6a272c6eec71")
+        
+    # script not found
+    with pytest.raises(custom_exceptions.ScriptNotFoundError):
+        script_manager.end_script("0e6a19cc157941e0b56b6a272c6eec72")
+    
+    # end the keep alive script
+    script_manager.end_script(script_id_1)
+    time.sleep(0.2) # wait for script 1 to be terminated
+    
+    # script process already ended but the script_manager's internals have not been updated
+    script_id_2 = "c66d9421757f4051aa2f99b5305cb037"
+    script_2_process = script_manager.start_script(script_id_2)
+    time.sleep(0.8) # wait for the script to finish
+    with pytest.raises(custom_exceptions.ScriptProcessNotAliveError):
+        script_manager.end_script(script_id_2)
+    
+    assert len(script_manager.running_processes) == 1
+        
+    # script process not running anymore
+    with pytest.raises(custom_exceptions.ScriptNotInRunningProcessesError):
+        script_manager.end_script(script_id_1)
+        
+    # script 2 should have ended here
+    assert script_2_process.is_alive() is False
+
+def test_script_status(script_manager):
+    """Testing for script status"""
+    
+    # scripts
+    script_id_2 = "c66d9421757f4051aa2f99b5305cb037"
+    
+    # start script
+    script_manager.start_script(script_id_2)
+    time.sleep(0.2) # break to let the process starts fully
+    
+    # None script_id
+    with pytest.raises(TypeError):
+        script_manager.script_status(None)
+    
+    # incorrect script_id
+    with pytest.raises(custom_exceptions.BadScriptIDLength):
+        script_manager.script_status("1234")
+    
+    # bad script_id
+    with pytest.raises(custom_exceptions.BadScriptIDFormat):
+        script_manager.script_status("0z6a19cc157941e0b56b6a272c6eec71")
+        
+    # script not found
+    with pytest.raises(custom_exceptions.ScriptNotFoundError):
+        script_manager.script_status("0e6a19cc157941e0b56b6a272c6eec72")
+    
+    # is alive
+    status = script_manager.script_status(script_id_2)
+    assert status == 0
+    
+    # end the script
+    time.sleep(0.6) # let the script 2 fully ends
+    
+    # check the status again
+    # status = script_manager.script_status(script_id_2)
+    # status of -1 is very hard to check
+    # script_status will perform a __refresh() which iterates all the script_ids
+    # and delete from script_manager.running_processes if any of the process has
+    # ended.
+    # the script needs to end right after the __refresh() in order to get status
+    # of -1.
+    
+    # check status
+    status = script_manager.script_status(script_id_2)
+    assert status == 1
