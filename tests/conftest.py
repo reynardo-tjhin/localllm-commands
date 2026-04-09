@@ -1,7 +1,7 @@
 import pytest
 import pathlib
 
-from src import create_app
+from src import create_app, load_scripts
 
 @pytest.fixture
 def app():
@@ -18,4 +18,13 @@ def app():
     )
     
     yield app
+
+@pytest.fixture
+def script_manager():
+    """Initialise the script manager before the tests"""
     
+    return load_scripts.init_script_manager(
+        module_parent_path=pathlib.Path(__file__).parent.parent,
+        module_name="test_scripts",
+        max_simul_runs=2,
+    )

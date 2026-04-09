@@ -1,8 +1,10 @@
 import os
 import re
 
+import multiprocessing
+
 from dataclasses import dataclass
-from multiprocessing import Process
+# from multiprocessing import Process
 from typing import Callable, Dict
 from redis import Redis
 from datetime import datetime
@@ -91,7 +93,7 @@ class ScriptManager:
     
     # a dictionary of ID of the script as the key and Process object
     # as the value.
-    running_processes: Dict[str, Process]
+    running_processes: Dict[str, multiprocessing.Process]
     
     def __init__(self, max_simul_runs: int = 4):
         self.max_simul_runs = max_simul_runs
@@ -113,7 +115,7 @@ class ScriptManager:
         
         self.scripts[script.script_id] = script
             
-    def start_script(self, script_id: str) -> bool:
+    def start_script(self, script_id: str) -> multiprocessing.Process:
         """Start the script based on the ID of the script given as an argument.
         Create a new process object :class:`Process` from the :module:`multiprocessing`.
         Script ID cannot be None, must adhere the hex format and only 32 characters are allowed.
@@ -148,8 +150,9 @@ class ScriptManager:
         # create a new process
         # pass the index as an argument to the execute function of the Script object
         # the index is for logging purposes as the key for the Redis database
-        new_process = Process(target=script_fn, args=())
-        
+        ctx = multiprocessing.get_context("spawn")
+        new_process = ctx.Process(target=script_fn, args=())
+    
         # if the parent process ends (the one that calls this process)
         # then the subprocess (which is the one created here) will continue
         # it might be an orphan process if not handled properly
@@ -160,7 +163,7 @@ class ScriptManager:
         self.running_processes[script_id] = new_process
         print(f"[INFO] Script ID '{script_id}' has started")
     
-        return True
+        return new_process
                 
     def end_script(self, script_id: str) -> bool:
         """End the script based on the ID of the script given as an argument.
@@ -184,18 +187,22 @@ class ScriptManager:
         if (self.running_processes.get(script_id) is None):
             raise ScriptNotInRunningProcessesError(script_id)
         
-        if (self.running_processes.get(script_id).is_alive() is False):
-            raise ScriptProcessNotAliveError(script_id)
+        # if (self.running_processes.get(script_id).is_alive() is False):
+        #     raise ScriptProcessNotAliveError(script_id)
 
         # refresh the internals
         self.__refresh()
     
         running_process = self.running_processes.get(script_id)
-        running_process.terminate() # graceful shutdown process
-        del self.running_processes[script_id]
-        print(f"[INFO] Script ID '{script_id}' has been terminated successfully")
+        if running_process is not None:
+            running_process.terminate() # graceful shutdown process
+            del self.running_processes[script_id]
+            print(f"[INFO] Script ID '{script_id}' has been terminated successfully")
         
-        return True
+        else:
+            print(f"[INFO] Script ID '{script_id}' has been removed when calling of __refresh()")
+        
+        return running_process
         
     def script_status(self, script_id: str) -> int:
         """Gets the script status. It will return one of the three integer values below:
