@@ -1,15 +1,16 @@
 import pytest
 import pathlib
+import dotenv
 
-from src import create_app, load_scripts
+from src import create_app, load_scripts, classes
 
 @pytest.fixture
 def app():
     """Create and configure a new app instance for each test."""
     
     # create and load test scripts
-    module_parent_path = pathlib.Path(__file__).parent
-    module_name = "scripts"
+    module_parent_path = pathlib.Path(__file__).parent.parent
+    module_name = "test_scripts"
     
     # create app
     app = create_app(
@@ -28,3 +29,11 @@ def script_manager():
         module_name="test_scripts",
         max_simul_runs=2,
     )
+    
+@pytest.fixture
+def logger():
+    """Initialise the logger before the tests"""
+    
+    # load the environment
+    dotenv.load_dotenv()
+    return classes.Logger("test")

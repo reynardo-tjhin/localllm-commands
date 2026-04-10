@@ -4,9 +4,8 @@ import re
 import multiprocessing
 
 from dataclasses import dataclass
-# from multiprocessing import Process
 from typing import Callable, Dict
-from redis import Redis
+from redis import Redis, ConnectionError, TimeoutError
 from datetime import datetime
 from .custom_exceptions import *
 
@@ -271,18 +270,38 @@ class Logger:
     # database.
     key: str
     
-    def __init__(self, key: str):
+    def __init__(
+        self, 
+        key: str, 
+        host: str = None,
+        port: str = None,
+        password: str = None,
+        socket_timeout: float = 5,
+        socket_connect_timeout: float = 15,
+    ):
+        try:
+            if (host is None):
+                host = os.getenv('REDIS_HOST')
+            
+            if (port is None):
+                port = os.getenv('REDIS_PORT')
+                
+            if (password is None):
+                password = os.getenv('REDIS_PASSWORD')
+            
+            # create a redis instance
+            self.conn = Redis(
+                host=host,
+                port=port,
+                decode_responses=True,
+                password=password,
+                socket_timeout=socket_timeout,
+                socket_connect_timeout=socket_connect_timeout,
+            )
+            # check if the redis server is up and running
+            self.conn.info()
         
-        # create a redis instance
-        self.conn = Redis(
-            host=os.getenv('REDIS_HOST'),
-            port=os.getenv('REDIS_PORT'),
-            decode_responses=True,
-            password=os.getenv('REDIS_PASSWORD'),
-        )
-        
-        # check if the redis server is up and running
-        if (self.conn.info() is None):
+        except TimeoutError:
             raise RedisConnectionError()
         
         # the logger's key
