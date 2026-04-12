@@ -1,3 +1,9 @@
+class ScriptIDAlreadyExists(Exception):
+    def __init__(self, script_id: str):
+        self.script_id = script_id
+        super().__init__(f"Script '{script_id}' already exists.")
+
+
 class ScriptIDError(Exception):
     pass
         

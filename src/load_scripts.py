@@ -7,6 +7,7 @@ import sys
 import pkgutil
 
 from .classes import Script, ScriptManager
+from .custom_exceptions import ScriptIDAlreadyExists
 
 def init_script_manager(
         module_parent_path: pathlib.Path,
@@ -39,6 +40,9 @@ def init_script_manager(
         # import the module
         mod = f"{module_name}.{name}"
         mod = importlib.import_module(mod)
+        
+        if (mod.ID in script_manager.scripts.keys()):
+            raise ScriptIDAlreadyExists(mod.ID)
         
         # each module needs to have NAME, DESCRIPTION and execute function
         # create event

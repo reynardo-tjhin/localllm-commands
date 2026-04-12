@@ -19,6 +19,11 @@ def app():
     )
     
     yield app
+    
+@pytest.fixture
+def client(app):
+    """A test client for the app."""
+    return app.test_client()
 
 @pytest.fixture
 def script_manager():

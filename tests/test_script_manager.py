@@ -8,7 +8,7 @@ def test_init_script_manager(script_manager):
     """Testing script manager has the right attributes"""
     
     # script manager's attributes
-    assert len(script_manager.scripts) == 3
+    assert len(script_manager.scripts) == 5
     assert script_manager.max_simul_runs == 2
     assert not script_manager.running_processes
     
@@ -63,6 +63,14 @@ def test_broken_init_script_manager():
             module_name="missing_execute_script",
             max_simul_runs=3,
         )
+        
+    with pytest.raises(custom_exceptions.ScriptIDAlreadyExists):
+        load_scripts.init_script_manager(
+            module_parent_path=pathlib.Path(__file__).parent,
+            module_name="duplicate_script_IDs",
+            max_simul_runs=3,
+        )
+        
         
 def test_add_script(script_manager):
     """Testing add scripts"""

@@ -64,12 +64,6 @@ def create_app(module_parent_path: pathlib.Path = None, module_name: str = None)
                 script_manager.start_script(script_id)
                 print(f"[INFO] Script with Script ID '{script_id}' has started successfully")
             
-            except TypeError:
-                return jsonify({
-                    "status": "error",
-                    "message": "script_id cannot be None"
-                }), 400 # bad request
-            
             except custom_exceptions.ScriptIDError as e:
                 return jsonify({
                     "status": "error",
@@ -117,12 +111,6 @@ def create_app(module_parent_path: pathlib.Path = None, module_name: str = None)
                 script_manager.end_script(script_id)
                 print(f"[INFO] Script with Script ID '{script_id}' has terminated successfully")
             
-            except TypeError:
-                return jsonify({
-                    "status": "error",
-                    "message": "script_id cannot be None"
-                }), 400 # bad request
-            
             except custom_exceptions.ScriptIDError as e:
                 return jsonify({
                     "status": "error",
@@ -162,12 +150,6 @@ def create_app(module_parent_path: pathlib.Path = None, module_name: str = None)
         """
         try:
             status = script_manager.script_status(script_id)
-        
-        except TypeError:
-                return jsonify({
-                    "status": "error",
-                    "message": "script_id cannot be None"
-                }), 400 # bad request
             
         except custom_exceptions.ScriptIDError as e:
             return jsonify({
