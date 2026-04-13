@@ -1,6 +1,8 @@
 import pytest
 import pathlib
 import dotenv
+import redis
+import os
 
 from src import create_app, load_scripts, classes
 
@@ -42,3 +44,24 @@ def logger():
     # load the environment
     dotenv.load_dotenv()
     return classes.Logger("test")
+
+@pytest.fixture
+def script_1_logger():
+    """Initialise the script_1 logger before running the tests"""
+    
+    # load the environment
+    dotenv.load_dotenv()
+    return classes.Logger("0e6a19cc157941e0b56b6a272c6eec71")
+
+@pytest.fixture
+def mock_redis():
+    """Initialise redis connection"""
+    
+    # load the environment
+    dotenv.load_dotenv()
+    return redis.Redis(
+        host=os.getenv('REDIS_HOST'),
+        port=os.getenv('REDIS_PORT'),
+        decode_responses=True,
+        password=os.getenv('REDIS_PASSWORD'),
+    )

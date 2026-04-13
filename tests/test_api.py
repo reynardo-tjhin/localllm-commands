@@ -81,7 +81,7 @@ def test_incorrect_script_id_worker_status(client):
     assert b"error" in response.data
     assert b"Script 'e7c25d6cbb6b4b60ab557a3cf868f9c0' not found." in response.data
 
-def test_start_stop_worker(client):
+def test_start_stop_worker(client, mock_redis):
     """Test starting and stopping scripts via API"""
     
     # script IDs
@@ -176,3 +176,49 @@ def test_incorrect_script_start_stop_worker(client):
     response = client.post("/stop-worker/" + not_exist_script_id)
     assert b"error" in response.data
     assert b"Script 'e7c25d6cbb6b4b60ab557a3cf868f9c0' not found." in response.data
+    
+def test_poll(script_1_logger, mock_redis, client):
+    """Testing on poll API"""
+    
+    script_1 = "0e6a19cc157941e0b56b6a272c6eec71"
+    script_2 = "c66d9421757f4051aa2f99b5305cb037"
+    
+    # Test 1: script_id is None
+    empty_script_id = ""
+    response = client.get("/poll/" + empty_script_id)
+    assert b"404 Not Found" in response.data
+    
+    # Test 2: incorrect length script id
+    incorrect_length_script_id = "1234"
+    response = client.get("/poll/" + incorrect_length_script_id)
+    assert b"{\"end\":0,\"events\":[]}" in response.data
+    
+    # Test 3: incorrect script id
+    incorrect_script_id = "0zza19cc157941e0b56b6a272c6eec71"
+    response = client.get("/poll/" + incorrect_script_id)
+    assert b"{\"end\":0,\"events\":[]}" in response.data
+    
+    # Test 4: non-existent script id
+    not_exist_script_id = "e7c25d6cbb6b4b60ab557a3cf868f9c0"
+    response = client.get("/poll/" + not_exist_script_id)
+    assert b"{\"end\":0,\"events\":[]}" in response.data
+    
+    # Test 5: no start query parameter
+    response = client.get("/poll/" + script_2)
+    assert b"{\"end\":0,\"events\":[]}" in response.data
+    
+    # create some events
+    script_1_logger.log("2026-04-13 20:00:00|Hello, World!")
+    script_1_logger.log("2026-04-13 20:10:00|Another Hello, World!")
+    script_1_logger.log("2026-04-13 20:20:00|Another Another Hello, World!")
+    script_1_logger.log("2026-04-13 20:30:00|Ending, World!")
+    
+    # Test 6: good test
+    response = client.get("/poll/" + script_1 + "?start=0")
+    assert b"2026-04-13 20:00:00|Hello, World!" in response.data
+    assert b"2026-04-13 20:10:00|Another Hello, World!" in response.data
+    assert b"2026-04-13 20:20:00|Another Another Hello, World!" in response.data
+    assert b"2026-04-13 20:30:00|Ending, World!" in response.data
+    
+    # clean up
+    mock_redis.delete("script:0e6a19cc157941e0b56b6a272c6eec71")
