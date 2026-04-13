@@ -162,7 +162,7 @@ IMPORTANT: Ensure the output is strictly parseable JSON."""
                 
         # get the input file
         # filename = "Change_Implemetation_RejectRecycleOFF.pdf"
-        input_file = os.path.join(os.pardir, "inputs", filename)
+        input_file = os.path.join("inputs", filename)
 
         # convert PDF to images
         images = convert_from_path(input_file, dpi=300, fmt="png")
