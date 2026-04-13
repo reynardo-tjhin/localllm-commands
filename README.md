@@ -1,4 +1,4 @@
-# localllm-commands
+# monitor-server
 
 - Learning about running local LLMs
 - Writing scripts to automate human tasks, like reading documents and extracting data
