@@ -304,6 +304,9 @@ class Logger:
         except TimeoutError:
             raise RedisConnectionError()
         
+        except ConnectionError:
+            raise RedisConnectionError()
+        
         # the logger's key
         self.key = "script:" + key
         

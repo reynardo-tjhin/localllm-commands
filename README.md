@@ -46,4 +46,4 @@ This repository is developed to track the progress of the scripts that I deploye
             sleep(2)
     ```
 
-4. Run the `Flask` app: `uv run flask --app src --debug`
+4. Run the `Flask` app: `uv run flask --app src run --debug`
