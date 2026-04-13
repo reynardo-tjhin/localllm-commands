@@ -189,6 +189,8 @@ IMPORTANT: Ensure the output is strictly parseable JSON."""
         # DEBUG: dump the payload
         # with open(os.path.join(os.curdir, "outputs", "test.json"), "w") as f:
         #     json.dump(payload, f, indent=2)
+        
+        logger.log("Sending prompt posted to URL")
 
         # create the request
         response = requests.post(
@@ -201,7 +203,7 @@ IMPORTANT: Ensure the output is strictly parseable JSON."""
             stream=False
         )
         
-        logger.log("Prompt posted to URL")
+        logger.log("Getting result from URL")
 
         # stream the response
         if response.status_code == 200:
@@ -223,7 +225,7 @@ IMPORTANT: Ensure the output is strictly parseable JSON."""
                 output_json[filename] = json_content # add to overall json output
                 
                 # write to the file
-                with open(os.path.join(os.pardir, "outputs", "output.json"), "w") as fp:
+                with open(os.path.join("outputs", "output.json"), "w") as fp:
                     json.dump(output_json, fp)
                 logger.log("Write to file successful")
             
@@ -231,7 +233,7 @@ IMPORTANT: Ensure the output is strictly parseable JSON."""
                 logger.log("Failed to parse content to JSON format")
                 
                 # write as a text string
-                with open(os.path.join(os.pardir, "outputs", f"{filename}.txt"), "w") as f:
+                with open(os.path.join("outputs", f"{filename}.txt"), "w") as f:
                     f.write(content)
             
             finally:
