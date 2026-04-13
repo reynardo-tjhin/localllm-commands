@@ -10,7 +10,7 @@ This repository is developed to track the progress of the scripts that I deploye
 - Redis server (hosted in my home server with Ubuntu Server as the OS)
 - uv (for easy python environment setup)
 
-## How to start
+## How to Start
 
 1. Create an ".env" file in the root
 
@@ -47,3 +47,7 @@ This repository is developed to track the progress of the scripts that I deploye
     ```
 
 4. Run the `Flask` app: `uv run flask --app src run --debug`
+
+## How I Deployed to My Home Server
+
+test

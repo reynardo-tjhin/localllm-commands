@@ -20,6 +20,7 @@ import json
 
 from io import BytesIO
 from pdf2image import convert_from_path
+from src.classes import Logger
 
 ID='39adbefa9e984e81a984f7034088ff68'
 NAME='Create ATS Database'
@@ -27,9 +28,14 @@ DESCRIPTION='Create database by parsing PDF to IMAGE and extract information usi
 
 def execute():
     
+    logger = Logger(ID)
+    
     # constants
     FOLDER_NAME="inputs"
     URL="http://192.168.4.128:5000/v1/chat/completions" # http://192.168.4.128:5000/v1/chat/completions
+    
+    logger.log(FOLDER_NAME)
+    logger.log(URL)
 
     # create the standardised prompt
     # PROMPT = "Only do this: reply 'Hi!' in JSON format"
@@ -98,9 +104,13 @@ REQUIRED JSON STRUCTURE:
 
 IMPORTANT: Ensure the output is strictly parseable JSON."""
 
+    logger.log(str(os.path.join(os.pardir, FOLDER_NAME)))
+
     # iterate each file in the folder
     output_json = {}
     for filename in os.listdir(os.path.join(os.pardir, FOLDER_NAME)):
+        
+        logger.log(f"Currently at {filename}")
         
         # construct the payload
         payload = {
@@ -149,17 +159,16 @@ IMPORTANT: Ensure the output is strictly parseable JSON."""
             ],
             "timings_per_token": True,
         }
-        
-        print()
-        print(f"Processing: {filename}")
-        
+                
         # get the input file
         # filename = "Change_Implemetation_RejectRecycleOFF.pdf"
         input_file = os.path.join(os.pardir, "inputs", filename)
 
         # convert PDF to images
         images = convert_from_path(input_file, dpi=300, fmt="png")
-        for image in images:
+        for index, image in enumerate(images):
+            
+            logger.log(f"Converting Image to Base64: [{index + 1}/{len(images)}]")
             
             # convert to Base64
             buffered = BytesIO()
@@ -175,7 +184,7 @@ IMPORTANT: Ensure the output is strictly parseable JSON."""
             }
             payload.get("messages")[0].get("content").append(img_payload)
             
-        print("\tConverted PDF to Images successfully")
+        logger.log("Converted PDF to Images successfully")
             
         # DEBUG: dump the payload
         # with open(os.path.join(os.curdir, "outputs", "test.json"), "w") as f:
@@ -191,6 +200,8 @@ IMPORTANT: Ensure the output is strictly parseable JSON."""
             json=payload,
             stream=False
         )
+        
+        logger.log("Prompt posted to URL")
 
         # stream the response
         if response.status_code == 200:
@@ -214,10 +225,10 @@ IMPORTANT: Ensure the output is strictly parseable JSON."""
                 # write to the file
                 with open(os.path.join(os.pardir, "outputs", "output.json"), "w") as fp:
                     json.dump(output_json, fp)
-                print("\tWrite to file successful")
+                logger.log("Write to file successful")
             
             except json.decoder.JSONDecodeError as e:
-                print("\tFailed to parse content to JSON format")
+                logger.log("Failed to parse content to JSON format")
                 
                 # write as a text string
                 with open(os.path.join(os.pardir, "outputs", f"{filename}.txt"), "w") as f:

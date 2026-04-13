@@ -278,8 +278,6 @@
         let state = "-1";
         let start = 0;
         async function poll() {
-            console.log("polling '/poll/" + state + "?start=" + start + "'");
-
             // no need to poll if UI state is empty
             if (state === "-1") return;
 
@@ -325,8 +323,6 @@
 
         document.querySelectorAll(".showButton").forEach(btn => {
             btn.addEventListener("click", async function (event) {
-                console.log("Show button clicked!");
-
                 event.preventDefault(); // prevent default button behaviour
 
                 // to prevent showing twice or duplicate showing
@@ -350,8 +346,6 @@
 
         document.querySelectorAll(".startButton").forEach(btn => {
             btn.addEventListener("click", async function (event) {
-                console.log("Start button clicked!");
-
                 event.preventDefault();
 
                 btn.disabled = true;
@@ -397,8 +391,6 @@
 
         document.querySelectorAll(".stopButton").forEach(btn => {
             btn.addEventListener("click", async function (event) {
-                console.log("Stop button clicked!");
-
                 event.preventDefault();
 
                 // stop the worker
@@ -418,8 +410,6 @@
 
 
         document.getElementById("clearButton").addEventListener("click", async function (event) {
-            console.log("Clear button clicked!");
-
             event.preventDefault();
             document.getElementById("table-content").textContent = "";
             document.getElementById("windowTitle").textContent = "Running Script";
