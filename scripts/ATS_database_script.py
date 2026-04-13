@@ -104,11 +104,11 @@ REQUIRED JSON STRUCTURE:
 
 IMPORTANT: Ensure the output is strictly parseable JSON."""
 
-    logger.log(str(os.path.join(os.pardir, FOLDER_NAME)))
+    logger.log(str(os.path.join(FOLDER_NAME)))
 
     # iterate each file in the folder
     output_json = {}
-    for filename in os.listdir(os.path.join(os.pardir, FOLDER_NAME)):
+    for filename in os.listdir(os.path.join(FOLDER_NAME)):
         
         logger.log(f"Currently at {filename}")
         
